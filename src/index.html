@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controlpage - DMXtoBeamer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="item" onclick="selectItem(this)">Client 1</div>
+        <div class="item" onclick="selectItem(this)">Client 2</div>
+        <div class="item" onclick="selectItem(this)">Client 3</div>
+        <!-- Add more items as needed -->
+    </div>
+    <div class="content">
+        <!-- Options will be dynamically loaded here -->
+    </div>
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <h2>Settings</h2>
+            <form id="settings-form">
+                <!-- Form elements will be dynamically loaded here -->
+            </form>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
