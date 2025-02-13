@@ -88,7 +88,7 @@ function handleDragOver(event) {
     event.preventDefault();
     const draggingElement = document.querySelector('.dragging');
     const targetElement = event.target.closest('.option');
-    if (targetElement && targetElement !== draggingElement) {
+    if (targetElement && targetElement !== draggingElement && !targetElement.classList.contains('add')) {
         const content = document.querySelector('.content');
         const options = Array.from(content.querySelectorAll('.option'));
         const draggingIndex = options.indexOf(draggingElement);
@@ -128,7 +128,7 @@ function handleTouchMove(event) {
     const content = document.querySelector('.content');
     const options = Array.from(content.querySelectorAll('.option'));
     const targetElement = document.elementFromPoint(event.touches[0].clientX, touchCurrentY).closest('.option');
-    if (targetElement && targetElement !== touchDraggingElement) {
+    if (targetElement && targetElement !== touchDraggingElement && !targetElement.classList.contains('add')) {
         const draggingIndex = options.indexOf(touchDraggingElement);
         const targetIndex = options.indexOf(targetElement);
         if (draggingIndex < targetIndex) {
