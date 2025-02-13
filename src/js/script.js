@@ -42,6 +42,9 @@ function loadOptions() {
         optionElement.addEventListener('dragstart', handleDragStart);
         optionElement.addEventListener('dragover', handleDragOver);
         optionElement.addEventListener('drop', handleDrop);
+        optionElement.addEventListener('touchstart', handleTouchStart);
+        optionElement.addEventListener('touchmove', handleTouchMove);
+        optionElement.addEventListener('touchend', handleTouchEnd);
 
         const img = document.createElement('img');
         img.src = option.image;
@@ -108,6 +111,43 @@ function handleDrop(event) {
         .filter(option => option.querySelector('.title')) // Filter out elements without a title
         .map(option => option.querySelector('.title').textContent);
     console.log('New order:', order);
+}
+
+let touchStartY = 0;
+let touchDraggingElement = null;
+
+function handleTouchStart(event) {
+    touchStartY = event.touches[0].clientY;
+    touchDraggingElement = event.target.closest('.option');
+    touchDraggingElement.classList.add('dragging');
+}
+
+function handleTouchMove(event) {
+    event.preventDefault();
+    const touchCurrentY = event.touches[0].clientY;
+    const content = document.querySelector('.content');
+    const options = Array.from(content.querySelectorAll('.option'));
+    const targetElement = document.elementFromPoint(event.touches[0].clientX, touchCurrentY).closest('.option');
+    if (targetElement && targetElement !== touchDraggingElement) {
+        const draggingIndex = options.indexOf(touchDraggingElement);
+        const targetIndex = options.indexOf(targetElement);
+        if (draggingIndex < targetIndex) {
+            content.insertBefore(touchDraggingElement, targetElement.nextSibling);
+        } else {
+            content.insertBefore(touchDraggingElement, targetElement);
+        }
+    }
+}
+
+function handleTouchEnd(event) {
+    touchDraggingElement.classList.remove('dragging');
+    const content = document.querySelector('.content');
+    const options = Array.from(content.querySelectorAll('.option'));
+    const order = options
+        .filter(option => option.querySelector('.title')) // Filter out elements without a title
+        .map(option => option.querySelector('.title').textContent);
+    console.log('New order:', order);
+    touchDraggingElement = null;
 }
 
 function openPopup(formElements) {
