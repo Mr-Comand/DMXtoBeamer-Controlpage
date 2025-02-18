@@ -269,28 +269,45 @@ function openAddLayerMenu(clientID, animationsApi, clientsApi) {
         const selectedAnimation = document.getElementById('animation-select').value;
         console.log('Selected animation:', selectedAnimation); // Debugging log
         // Logic to add a new layer with the selected animation
-        submitAddLayerForm(clientID, selectedAnimation, clientsApi);
+        submitAddLayerForm(clientID, selectedAnimation, clientsApi, animationsApi);
     });
 }
 
-function submitAddLayerForm(clientID, selectedAnimation, clientsApi) {
-    const newLayer = {
-        animationID: selectedAnimation,
-        dimmer: 0,
-        hueShift: 0,
-        rotate: 0,
-        pan: 0,
-        tilt: 0,
-        scale: 0
-    };
-
-    clientsApi.apiClientSetClientIDPost({ layers: [newLayer] }, clientID, (error, data, response) => {
+function submitAddLayerForm(clientID, selectedAnimation, clientsApi, animationsApi) {
+    // Fetch the current client configuration
+    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
         if (error) {
-            console.error('Error adding new layer:', error);
+            console.error('Error fetching client configuration:', error);
             return;
         }
-        console.log('New layer added successfully:', data);
-        // Reload the client configuration to reflect the new layer
-        selectItem(document.querySelector(`.item:contains(${clientID})`), clientsApi, animationsApi);
+
+        // Add the new layer to the existing layers
+        const newLayer = {
+            animationID: selectedAnimation,
+            dimmer: 0,
+            hueShift: 0,
+            rotate: 0,
+            pan: 0,
+            tilt: 0,
+            scale: 0
+        };
+        const updatedLayers = data.layers.concat(newLayer);
+
+        // Update the client configuration with the new layer
+        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
+            if (error) {
+                console.error('Error adding new layer:', error);
+                return;
+            }
+            console.log('New layer added successfully:', data);
+            // Reload the client configuration to reflect the new layer
+            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+                if (error) {
+                    console.error('Error re-fetching client configuration:', error);
+                    return;
+                }
+                loadLayers(data, clientID, clientsApi, animationsApi);
+            });
+        });
     });
 }
