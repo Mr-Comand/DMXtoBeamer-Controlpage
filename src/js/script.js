@@ -94,10 +94,10 @@ function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
             layerElement.draggable = true;
             layerElement.addEventListener('dragstart', handleDragStart);
             layerElement.addEventListener('dragover', handleDragOver);
-            layerElement.addEventListener('drop', handleDrop);
+            layerElement.addEventListener('drop', (event) => handleDrop(event, clientID, clientsApi, animationsApi));
             layerElement.addEventListener('touchstart', handleTouchStart);
             layerElement.addEventListener('touchmove', handleTouchMove);
-            layerElement.addEventListener('touchend', handleTouchEnd);
+            layerElement.addEventListener('touchend', (event) => handleTouchEnd(event, clientID, clientsApi, animationsApi));
 
             const img = document.createElement('img');
             img.src = layer.image;
@@ -154,7 +154,7 @@ function handleDragOver(event) {
     }
 }
 
-function handleDrop(event) {
+function handleDrop(event, clientID, clientsApi, animationsApi) {
     event.preventDefault();
     const draggingElement = document.querySelector('.dragging');
     draggingElement.classList.remove('dragging');
@@ -164,6 +164,42 @@ function handleDrop(event) {
         .filter(option => option.querySelector('.title')) // Filter out elements without a title
         .map(option => option.querySelector('.title').textContent);
     console.log('New order:', order);
+
+    // Fetch the current client configuration
+    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+        if (error) {
+            console.error('Error fetching client configuration:', error);
+            return;
+        }
+
+        // Get the current order of layers
+        const currentOrder = data.layers.map(layer => layer.animationID);
+
+        // Compare the new order with the current order
+        if (JSON.stringify(order) === JSON.stringify(currentOrder)) {
+            console.log('Order is the same, no need to update.');
+            return;
+        }
+
+        // Update the client configuration with the new order
+        const updatedLayers = order.map(animationID => data.layers.find(layer => layer.animationID === animationID));
+
+        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
+            if (error) {
+                console.error('Error updating layer order:', error);
+                return;
+            }
+            console.log('Layer order updated successfully:', data);
+            // Reload the client configuration to reflect the new order
+            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+                if (error) {
+                    console.error('Error re-fetching client configuration:', error);
+                    return;
+                }
+                loadLayers(data, clientID, clientsApi, animationsApi);
+            });
+        });
+    });
 }
 
 let touchStartY = 0;
@@ -192,7 +228,7 @@ function handleTouchMove(event) {
     }
 }
 
-function handleTouchEnd(event) {
+function handleTouchEnd(event, clientID, clientsApi, animationsApi) {
     touchDraggingElement.classList.remove('dragging');
     const content = document.querySelector('.content');
     const options = Array.from(content.querySelectorAll('.option'));
@@ -201,6 +237,42 @@ function handleTouchEnd(event) {
         .map(option => option.querySelector('.title').textContent);
     console.log('New order:', order);
     touchDraggingElement = null;
+
+    // Fetch the current client configuration
+    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+        if (error) {
+            console.error('Error fetching client configuration:', error);
+            return;
+        }
+
+        // Get the current order of layers
+        const currentOrder = data.layers.map(layer => layer.animationID);
+
+        // Compare the new order with the current order
+        if (JSON.stringify(order) === JSON.stringify(currentOrder)) {
+            console.log('Order is the same, no need to update.');
+            return;
+        }
+
+        // Update the client configuration with the new order
+        const updatedLayers = order.map(animationID => data.layers.find(layer => layer.animationID === animationID));
+
+        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
+            if (error) {
+                console.error('Error updating layer order:', error);
+                return;
+            }
+            console.log('Layer order updated successfully:', data);
+            // Reload the client configuration to reflect the new order
+            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+                if (error) {
+                    console.error('Error re-fetching client configuration:', error);
+                    return;
+                }
+                loadLayers(data, clientID, clientsApi, animationsApi);
+            });
+        });
+    });
 }
 
 function openPopup(formElements) {
