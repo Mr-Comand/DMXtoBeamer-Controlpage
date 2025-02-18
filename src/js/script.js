@@ -88,7 +88,7 @@ function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
         noLayerElement.textContent = 'No layers added';
         content.appendChild(noLayerElement);
     } else {
-        layers.forEach(layer => {
+        layers.forEach((layer, index) => {
             const layerElement = document.createElement('div');
             layerElement.classList.add('option');
             layerElement.draggable = true;
@@ -106,14 +106,15 @@ function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
             title.classList.add('title');
             title.textContent = layer.animationID;
 
-            const settings = document.createElement('div');
-            settings.classList.add('settings');
-            settings.textContent = '⚙️';
-            settings.onclick = () => openPopup(layer.parameters);
+            const deleteButton = document.createElement('div');
+            deleteButton.classList.add('delete');
+            deleteButton.textContent = '🗑️';
+            deleteButton.style.cursor = 'pointer'; // Set cursor to pointer
+            deleteButton.onclick = () => deleteLayer(clientID, index, clientsApi, animationsApi);
 
             layerElement.appendChild(img);
             layerElement.appendChild(title);
-            layerElement.appendChild(settings);
+            layerElement.appendChild(deleteButton);
 
             content.appendChild(layerElement);
         });
@@ -301,6 +302,36 @@ function submitAddLayerForm(clientID, selectedAnimation, clientsApi, animationsA
             }
             console.log('New layer added successfully:', data);
             // Reload the client configuration to reflect the new layer
+            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+                if (error) {
+                    console.error('Error re-fetching client configuration:', error);
+                    return;
+                }
+                loadLayers(data, clientID, clientsApi, animationsApi);
+            });
+        });
+    });
+}
+
+function deleteLayer(clientID, layerIndex, clientsApi, animationsApi) {
+    // Fetch the current client configuration
+    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+        if (error) {
+            console.error('Error fetching client configuration:', error);
+            return;
+        }
+
+        // Remove the layer at the specified index
+        const updatedLayers = data.layers.filter((_, index) => index !== layerIndex);
+
+        // Update the client configuration without the deleted layer
+        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
+            if (error) {
+                console.error('Error deleting layer:', error);
+                return;
+            }
+            console.log('Layer deleted successfully:', data);
+            // Reload the client configuration to reflect the deleted layer
             clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
                 if (error) {
                     console.error('Error re-fetching client configuration:', error);

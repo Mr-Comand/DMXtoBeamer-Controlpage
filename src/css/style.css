@@ -71,7 +71,7 @@ body {
 }
 
 /* Popup styles */
-.popup {
+.popup { 
     display: none;
     position: fixed;
     top: 0;
