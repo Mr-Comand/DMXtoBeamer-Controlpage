@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controlpage - DMXtoBeamer</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=WeakRef,BigInt"></script>
+    <script src="https://cdn.jsdelivr.net/npm/superagent"></script>
 </head>
 <body>
     <div class="top-bar">
@@ -25,6 +27,12 @@
             </form>
         </div>
     </div>
-    <script src="js/script.js"></script>
+    <div class="add-layer-container" style="display: none;">
+        <select id="animation-select" name="animationID">
+            <!-- Animation options will be dynamically loaded here -->
+        </select>
+        <button id="send-button" onclick="submitAddLayerForm()">Send</button>
+    </div>
+    <script src="js/script.js" type="module"></script>
 </body>
 </html>

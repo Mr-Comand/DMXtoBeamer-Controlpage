@@ -1,11 +1,21 @@
+// Import the necessary API client modules
+import { ApiClient, AnimationsApi, ClientsApi, ShadersApi } from '../../javascript-client-generated/src/index.js';
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize the API clients
+    const apiClient = new ApiClient();
+    const animationsApi = new AnimationsApi(apiClient);
+    const clientsApi = new ClientsApi(apiClient);
+    const shadersApi = new ShadersApi(apiClient);
+
+    // Load the client list
+    loadClientList(clientsApi, animationsApi);
+
     // Select the first item by default
     const firstItem = document.querySelector('.item');
     if (firstItem) {
-        selectItem(firstItem);
+        selectItem(firstItem, clientsApi, animationsApi);
     }
-
-    loadOptions();
 
     // Close popup when clicking outside of it
     document.addEventListener('mousedown', (event) => {
@@ -17,66 +27,108 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function selectItem(element) {
-    document.querySelectorAll('.item').forEach(item => item.classList.remove('selected'));
-    element.classList.add('selected');
-    // Load options based on the selected item
-    loadOptions();
+function loadClientList(clientsApi, animationsApi) {
+    const topBar = document.querySelector('.top-bar');
+    topBar.innerHTML = ''; // Clear existing items
+
+    // Fetch the client list from the API
+    clientsApi.apiClientListGet((error, data, response) => {
+        if (error) {
+            console.error(error);
+            return;
+        }
+
+        const clients = data.clients;
+
+        if (clients.length === 0) {
+            const noClientElement = document.createElement('div');
+            noClientElement.classList.add('no-client');
+            noClientElement.textContent = 'No client connected';
+            topBar.appendChild(noClientElement);
+        } else {
+            clients.forEach(client => {
+                const clientElement = document.createElement('div');
+                clientElement.classList.add('item');
+                clientElement.textContent = client;
+                clientElement.onclick = () => selectItem(clientElement, clientsApi, animationsApi);
+                topBar.appendChild(clientElement);
+            });
+        }
+    });
 }
 
-function loadOptions() {
+function selectItem(element, clientsApi, animationsApi) {
+    document.querySelectorAll('.item').forEach(item => item.classList.remove('selected'));
+    element.classList.add('selected');
+
+    // Fetch the client configuration
+    const clientID = element.textContent;
+    console.log('Selected client ID:', clientID); // Debugging log
+    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
+        if (error) {
+            console.error('Error fetching client configuration:', error);
+            return;
+        }
+        console.log('Client configuration:', data); // Debugging log
+
+        // Load options based on the client configuration
+        loadLayers(data, clientID, clientsApi, animationsApi);
+    });
+}
+
+function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
     const content = document.querySelector('.content');
     content.innerHTML = ''; // Clear existing options
 
-    // Fetch options from the API (replace with actual API call)
-    const options = [
-        { title: 'Animation 1', image: 'https://picsum.photos/175/175',formElements: [{ type: 'checkbox', name: 'option1', label: 'Option 1' }, { type: 'range', name: 'slider', min: 0, max: 100 }] },
-        { title: 'Animation 2', image: 'https://picsum.photos/75/75',formElements: [{ type: 'text', name: 'textInput', placeholder: 'Text input' }] },
-        { title: 'Animation 3', image: 'https://picsum.photos/200/200',formElements: [{ type: 'checkbox', name: 'option2', label: 'Option 2' }] }
-    ];
+    const layers = clientConfig.layers;
 
-    options.forEach(option => {
-        const optionElement = document.createElement('div');
-        optionElement.classList.add('option');
-        optionElement.draggable = true;
-        optionElement.addEventListener('dragstart', handleDragStart);
-        optionElement.addEventListener('dragover', handleDragOver);
-        optionElement.addEventListener('drop', handleDrop);
-        optionElement.addEventListener('touchstart', handleTouchStart);
-        optionElement.addEventListener('touchmove', handleTouchMove);
-        optionElement.addEventListener('touchend', handleTouchEnd);
+    if (layers.length === 0) {
+        const noLayerElement = document.createElement('div');
+        noLayerElement.classList.add('no-layer');
+        noLayerElement.textContent = 'No layers added';
+        content.appendChild(noLayerElement);
+    } else {
+        layers.forEach(layer => {
+            const layerElement = document.createElement('div');
+            layerElement.classList.add('option');
+            layerElement.draggable = true;
+            layerElement.addEventListener('dragstart', handleDragStart);
+            layerElement.addEventListener('dragover', handleDragOver);
+            layerElement.addEventListener('drop', handleDrop);
+            layerElement.addEventListener('touchstart', handleTouchStart);
+            layerElement.addEventListener('touchmove', handleTouchMove);
+            layerElement.addEventListener('touchend', handleTouchEnd);
 
-        const img = document.createElement('img');
-        img.src = option.image;
+            const img = document.createElement('img');
+            img.src = layer.image;
 
-        const title = document.createElement('div');
-        title.classList.add('title');
-        title.textContent = option.title;
+            const title = document.createElement('div');
+            title.classList.add('title');
+            title.textContent = layer.animationID;
 
-        const settings = document.createElement('div');
-        settings.classList.add('settings');
-        settings.textContent = '⚙️';
-        settings.onclick = () => openPopup(option.formElements);
+            const settings = document.createElement('div');
+            settings.classList.add('settings');
+            settings.textContent = '⚙️';
+            settings.onclick = () => openPopup(layer.parameters);
 
-        optionElement.appendChild(img);
-        optionElement.appendChild(title);
-        optionElement.appendChild(settings);
+            layerElement.appendChild(img);
+            layerElement.appendChild(title);
+            layerElement.appendChild(settings);
 
-        content.appendChild(optionElement);
-    });
+            content.appendChild(layerElement);
+        });
+    }
 
-    // Add option to add a new animation
-    const addOptionElement = document.createElement('div');
-    addOptionElement.classList.add('option', 'add');
-    addOptionElement.textContent = '+';
-    addOptionElement.style.textAlign = 'center';
-    addOptionElement.style.fontSize = '24px';
-    addOptionElement.style.cursor = 'pointer';
-    addOptionElement.onclick = () => {
-        // Logic to add a new animation
-        alert('Add new animation');
-    };
-    content.appendChild(addOptionElement);
+    // Add option to add a new layer
+    const addLayerElement = document.createElement('div');
+    addLayerElement.classList.add('option', 'add');
+    addLayerElement.style.display = 'none'; // Hide the '+' element
+    content.appendChild(addLayerElement);
+
+    // Show the animation select dropdown
+    const addLayerContainer = document.querySelector('.add-layer-container');
+    addLayerContainer.style.display = 'block';
+    openAddLayerMenu(clientID, animationsApi, clientsApi);
 }
 
 function handleDragStart(event) {
@@ -160,7 +212,7 @@ function openPopup(formElements) {
         container.classList.add('form-element');
 
         const label = document.createElement('label');
-        label.textContent = element.label || element.name;
+        label.textContent = element.description || element.name;
         container.appendChild(label);
 
         const input = document.createElement('input');
@@ -190,4 +242,55 @@ function openPopup(formElements) {
 
 function closePopup() {
     document.getElementById('popup').style.display = 'none';
+}
+
+function openAddLayerMenu(clientID, animationsApi, clientsApi) {
+    // Fetch the list of available animations
+    animationsApi.apiAnimationListGet((error, data, response) => {
+        if (error) {
+            console.error('Error fetching animations:', error);
+            return;
+        }
+
+        const animationSelect = document.getElementById('animation-select');
+        animationSelect.innerHTML = ''; // Clear existing options
+
+        const animations = Object.values(data);
+        animations.forEach(animation => {
+            const option = document.createElement('option');
+            option.value = animation.animationName;
+            option.textContent = animation.animationName;
+            animationSelect.appendChild(option);
+        });
+    });
+
+    // Add event listener to handle the selection of an animation
+    document.getElementById('send-button').addEventListener('click', () => {
+        const selectedAnimation = document.getElementById('animation-select').value;
+        console.log('Selected animation:', selectedAnimation); // Debugging log
+        // Logic to add a new layer with the selected animation
+        submitAddLayerForm(clientID, selectedAnimation, clientsApi);
+    });
+}
+
+function submitAddLayerForm(clientID, selectedAnimation, clientsApi) {
+    const newLayer = {
+        animationID: selectedAnimation,
+        dimmer: 0,
+        hueShift: 0,
+        rotate: 0,
+        pan: 0,
+        tilt: 0,
+        scale: 0
+    };
+
+    clientsApi.apiClientSetClientIDPost({ layers: [newLayer] }, clientID, (error, data, response) => {
+        if (error) {
+            console.error('Error adding new layer:', error);
+            return;
+        }
+        console.log('New layer added successfully:', data);
+        // Reload the client configuration to reflect the new layer
+        selectItem(document.querySelector(`.item:contains(${clientID})`), clientsApi, animationsApi);
+    });
 }
