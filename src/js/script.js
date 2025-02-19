@@ -37,7 +37,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Pushing data...");
         await sendAllClients();
     });
-    
+    const content = document.querySelector('.content');
+
+    // Add option to add a new layer
+    const addLayerElement = document.createElement('div');
+    addLayerElement.classList.add('option', 'add');
+    addLayerElement.style.display = 'none'; // Hide the '+' element
+    content.appendChild(addLayerElement);
+
+    // Show the animation select dropdown
+    const addLayerContainer = document.querySelector('.add-layer-container');
+    addLayerContainer.style.display = 'block';
+    openAddLayerMenu(clientID);
 });
 
 async function loadClientList() {
@@ -77,18 +88,7 @@ function selectItem(element) {
 
     // Load options based on the client configuration
     loadLayers(Clients[clientID], clientID);
-    const content = document.querySelector('.content');
-
-    // Add option to add a new layer
-    const addLayerElement = document.createElement('div');
-    addLayerElement.classList.add('option', 'add');
-    addLayerElement.style.display = 'none'; // Hide the '+' element
-    content.appendChild(addLayerElement);
-
-    // Show the animation select dropdown
-    const addLayerContainer = document.querySelector('.add-layer-container');
-    addLayerContainer.style.display = 'block';
-    openAddLayerMenu(clientID);
+    
 }
 
 function loadLayers(clientConfig, clientID) {
@@ -282,14 +282,11 @@ function openAddLayerMenu(clientID) {
         const selectedAnimation = document.getElementById('animation-select').value;
         console.log('Selected animation:', selectedAnimation); // Debugging log
         // Logic to add a new layer with the selected animation
-        submitAddLayerForm(clientID, selectedAnimation);
+        submitAddLayerForm(selectedAnimation);
     });
 }
 
-function submitAddLayerForm(clientID, selectedAnimation) {
-    // Fetch the current client configuration
-
-
+function submitAddLayerForm(selectedAnimation) {
     // Add the new layer to the existing layers
 
     const newLayer = Object.assign(new Layer(), {
