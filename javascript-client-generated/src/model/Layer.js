@@ -45,7 +45,7 @@ export default class Layer {
       if (data.hasOwnProperty('parameters'))
         obj.parameters = ApiClient.convertToType(data['parameters'], {'String': Object});
       if (data.hasOwnProperty('enabled'))
-        obj.enabled = ApiClient.convertToType(data['enabled'], 'Number');
+        obj.enabled = ApiClient.convertToType(data['enabled'], 'bool');
       if (data.hasOwnProperty('dimmer'))
         obj.dimmer = ApiClient.convertToType(data['dimmer'], 'Number');
       if (data.hasOwnProperty('hueShift'))
@@ -89,7 +89,7 @@ Layer.prototype.parameters = undefined;
 /**
  * @member {Number} enabled
  */
-Layer.prototype.enabled = undefined;
+Layer.prototype.enabled = true;
 
 /**
  * @member {Number} dimmer

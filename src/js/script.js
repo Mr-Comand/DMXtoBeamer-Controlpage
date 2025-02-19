@@ -1,20 +1,15 @@
 // Import the necessary API client modules
-import { ApiClient, AnimationsApi, ClientsApi, ShadersApi } from '../../javascript-client-generated/src/index.js';
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize the API clients
-    const apiClient = new ApiClient();
-    const animationsApi = new AnimationsApi(apiClient);
-    const clientsApi = new ClientsApi(apiClient);
-    const shadersApi = new ShadersApi(apiClient);
-
+import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../../javascript-client-generated/src/index.js';
+import { pullClientList, Clients } from './apihandler.js'
+import { animationsApi } from './globals.js'
+document.addEventListener('DOMContentLoaded', async () => {
     // Load the client list
-    loadClientList(clientsApi, animationsApi);
+    await loadClientList();
 
     // Select the first item by default
     const firstItem = document.querySelector('.item');
     if (firstItem) {
-        selectItem(firstItem, clientsApi, animationsApi);
+        selectItem(firstItem);
     }
 
     // Close popup when clicking outside of it
@@ -27,56 +22,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function loadClientList(clientsApi, animationsApi) {
+async function loadClientList() {
     const topBar = document.querySelector('.top-bar');
     topBar.innerHTML = ''; // Clear existing items
-
+    await pullClientList()
     // Fetch the client list from the API
-    clientsApi.apiClientListGet((error, data, response) => {
-        if (error) {
-            console.error(error);
-            return;
-        }
 
-        const clients = data.clients;
+    const clients = Object.keys(Clients);
 
-        if (clients.length === 0) {
-            const noClientElement = document.createElement('div');
-            noClientElement.classList.add('no-client');
-            noClientElement.textContent = 'No client connected';
-            topBar.appendChild(noClientElement);
-        } else {
-            clients.forEach(client => {
-                const clientElement = document.createElement('div');
-                clientElement.classList.add('item');
-                clientElement.textContent = client;
-                clientElement.onclick = () => selectItem(clientElement, clientsApi, animationsApi);
-                topBar.appendChild(clientElement);
-            });
-        }
-    });
+    if (clients.length === 0) {
+        const noClientElement = document.createElement('div');
+        noClientElement.classList.add('no-client');
+        noClientElement.textContent = 'No client connected';
+        topBar.appendChild(noClientElement);
+    } else {
+        clients.forEach(client => {
+            const clientElement = document.createElement('div');
+            clientElement.classList.add('item');
+            clientElement.textContent = client;
+            clientElement.onclick = () => selectItem(clientElement);
+            topBar.appendChild(clientElement);
+        });
+    }
+
 }
 
-function selectItem(element, clientsApi, animationsApi) {
+function selectItem(element) {
     document.querySelectorAll('.item').forEach(item => item.classList.remove('selected'));
     element.classList.add('selected');
 
     // Fetch the client configuration
     const clientID = element.textContent;
     console.log('Selected client ID:', clientID); // Debugging log
-    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-        if (error) {
-            console.error('Error fetching client configuration:', error);
-            return;
-        }
-        console.log('Client configuration:', data); // Debugging log
 
-        // Load options based on the client configuration
-        loadLayers(data, clientID, clientsApi, animationsApi);
-    });
+    console.log('Client configuration:', Clients[clientID]); // Debugging log
+
+    // Load options based on the client configuration
+    loadLayers(Clients[clientID], clientID);
+    const content = document.querySelector('.content');
+
+    // Add option to add a new layer
+    const addLayerElement = document.createElement('div');
+    addLayerElement.classList.add('option', 'add');
+    addLayerElement.style.display = 'none'; // Hide the '+' element
+    content.appendChild(addLayerElement);
+
+    // Show the animation select dropdown
+    const addLayerContainer = document.querySelector('.add-layer-container');
+    addLayerContainer.style.display = 'block';
+    openAddLayerMenu(clientID);
 }
 
-function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
+function loadLayers(clientConfig, clientID) {
     const content = document.querySelector('.content');
     content.innerHTML = ''; // Clear existing options
 
@@ -94,11 +91,11 @@ function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
             layerElement.draggable = true;
             layerElement.addEventListener('dragstart', handleDragStart);
             layerElement.addEventListener('dragover', handleDragOver);
-            layerElement.addEventListener('drop', (event) => handleDrop(event, clientID, clientsApi, animationsApi));
+            layerElement.addEventListener('drop', (event) => handleDrop(event, clientID));
             layerElement.addEventListener('touchstart', handleTouchStart);
             layerElement.addEventListener('touchmove', handleTouchMove);
-            layerElement.addEventListener('touchend', (event) => handleTouchEnd(event, clientID, clientsApi, animationsApi));
-
+            layerElement.addEventListener('touchend', (event) => handleTouchEnd(event, clientID));
+            layerElement.setAttribute('layerID', layer.layerID)
             const img = document.createElement('img');
             img.src = layer.image;
 
@@ -110,7 +107,7 @@ function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
             deleteButton.classList.add('delete');
             deleteButton.textContent = '🗑️';
             deleteButton.style.cursor = 'pointer'; // Set cursor to pointer
-            deleteButton.onclick = () => deleteLayer(clientID, index, clientsApi, animationsApi);
+            deleteButton.onclick = () => deleteLayer(clientID, index);
 
             layerElement.appendChild(img);
             layerElement.appendChild(title);
@@ -119,17 +116,6 @@ function loadLayers(clientConfig, clientID, clientsApi, animationsApi) {
             content.appendChild(layerElement);
         });
     }
-
-    // Add option to add a new layer
-    const addLayerElement = document.createElement('div');
-    addLayerElement.classList.add('option', 'add');
-    addLayerElement.style.display = 'none'; // Hide the '+' element
-    content.appendChild(addLayerElement);
-
-    // Show the animation select dropdown
-    const addLayerContainer = document.querySelector('.add-layer-container');
-    addLayerContainer.style.display = 'block';
-    openAddLayerMenu(clientID, animationsApi, clientsApi);
 }
 
 function handleDragStart(event) {
@@ -154,52 +140,20 @@ function handleDragOver(event) {
     }
 }
 
-function handleDrop(event, clientID, clientsApi, animationsApi) {
+function handleDrop(event, clientID) {
     event.preventDefault();
     const draggingElement = document.querySelector('.dragging');
     draggingElement.classList.remove('dragging');
     const content = document.querySelector('.content');
     const options = Array.from(content.querySelectorAll('.option'));
-    const order = options
-        .filter(option => option.querySelector('.title')) // Filter out elements without a title
-        .map(option => option.querySelector('.title').textContent);
-    console.log('New order:', order);
-
-    // Fetch the current client configuration
-    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-        if (error) {
-            console.error('Error fetching client configuration:', error);
-            return;
-        }
-
-        // Get the current order of layers
-        const currentOrder = data.layers.map(layer => layer.animationID);
-
-        // Compare the new order with the current order
-        if (JSON.stringify(order) === JSON.stringify(currentOrder)) {
-            console.log('Order is the same, no need to update.');
-            return;
-        }
-
-        // Update the client configuration with the new order
-        const updatedLayers = order.map(animationID => data.layers.find(layer => layer.animationID === animationID));
-
-        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
-            if (error) {
-                console.error('Error updating layer order:', error);
-                return;
-            }
-            console.log('Layer order updated successfully:', data);
-            // Reload the client configuration to reflect the new order
-            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-                if (error) {
-                    console.error('Error re-fetching client configuration:', error);
-                    return;
-                }
-                loadLayers(data, clientID, clientsApi, animationsApi);
-            });
-        });
+    const layerIDs = options.map(option => option.getAttribute('layerid'));
+    layerIDs.pop(-1)
+    let order = [];
+    const layers = Clients[clientID].layers
+    layerIDs.forEach(Lid => {
+        order.push(layers.findIndex(item => item.layerID == Lid))
     });
+    Clients[clientID].reorderLayers(order)
 }
 
 let touchStartY = 0;
@@ -228,51 +182,18 @@ function handleTouchMove(event) {
     }
 }
 
-function handleTouchEnd(event, clientID, clientsApi, animationsApi) {
+function handleTouchEnd(event, clientID) {
     touchDraggingElement.classList.remove('dragging');
     const content = document.querySelector('.content');
     const options = Array.from(content.querySelectorAll('.option'));
-    const order = options
-        .filter(option => option.querySelector('.title')) // Filter out elements without a title
-        .map(option => option.querySelector('.title').textContent);
-    console.log('New order:', order);
-    touchDraggingElement = null;
-
-    // Fetch the current client configuration
-    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-        if (error) {
-            console.error('Error fetching client configuration:', error);
-            return;
-        }
-
-        // Get the current order of layers
-        const currentOrder = data.layers.map(layer => layer.animationID);
-
-        // Compare the new order with the current order
-        if (JSON.stringify(order) === JSON.stringify(currentOrder)) {
-            console.log('Order is the same, no need to update.');
-            return;
-        }
-
-        // Update the client configuration with the new order
-        const updatedLayers = order.map(animationID => data.layers.find(layer => layer.animationID === animationID));
-
-        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
-            if (error) {
-                console.error('Error updating layer order:', error);
-                return;
-            }
-            console.log('Layer order updated successfully:', data);
-            // Reload the client configuration to reflect the new order
-            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-                if (error) {
-                    console.error('Error re-fetching client configuration:', error);
-                    return;
-                }
-                loadLayers(data, clientID, clientsApi, animationsApi);
-            });
-        });
+    const layerIDs = options.map(option => option.getAttribute('layerid'));
+    layerIDs.pop(-1)
+    let order = [];
+    const layers = Clients[clientID].layers
+    layerIDs.forEach(Lid => {
+        order.push(layers.findIndex(item => item.layerID == Lid))
     });
+    Clients[clientID].reorderLayers(order)
 }
 
 function openPopup(formElements) {
@@ -317,7 +238,7 @@ function closePopup() {
     document.getElementById('popup').style.display = 'none';
 }
 
-function openAddLayerMenu(clientID, animationsApi, clientsApi) {
+function openAddLayerMenu(clientID) {
     // Fetch the list of available animations
     animationsApi.apiAnimationListGet((error, data, response) => {
         if (error) {
@@ -342,75 +263,32 @@ function openAddLayerMenu(clientID, animationsApi, clientsApi) {
         const selectedAnimation = document.getElementById('animation-select').value;
         console.log('Selected animation:', selectedAnimation); // Debugging log
         // Logic to add a new layer with the selected animation
-        submitAddLayerForm(clientID, selectedAnimation, clientsApi, animationsApi);
+        submitAddLayerForm(clientID, selectedAnimation);
     });
 }
 
-function submitAddLayerForm(clientID, selectedAnimation, clientsApi, animationsApi) {
+function submitAddLayerForm(clientID, selectedAnimation) {
     // Fetch the current client configuration
-    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-        if (error) {
-            console.error('Error fetching client configuration:', error);
-            return;
-        }
 
-        // Add the new layer to the existing layers
-        const newLayer = {
-            animationID: selectedAnimation,
-            dimmer: 0,
-            hueShift: 0,
-            rotate: 0,
-            pan: 0,
-            tilt: 0,
-            scale: 0
-        };
-        const updatedLayers = data.layers.concat(newLayer);
 
-        // Update the client configuration with the new layer
-        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
-            if (error) {
-                console.error('Error adding new layer:', error);
-                return;
-            }
-            console.log('New layer added successfully:', data);
-            // Reload the client configuration to reflect the new layer
-            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-                if (error) {
-                    console.error('Error re-fetching client configuration:', error);
-                    return;
-                }
-                loadLayers(data, clientID, clientsApi, animationsApi);
-            });
-        });
+    // Add the new layer to the existing layers
+
+    const newLayer = Object.assign(new Layer(), {
+        layerID: Clients[clientID].layers.length + 1, // Unique ID //TODO: FIX ID
+        animationID: selectedAnimation,
+        enabled: true,
+        dimmer: 100,
+        hueShift: 0,
+        rotate: 0,
+        pan: 0,
+        tilt: 0,
+        scale: 125,
     });
+    Clients[clientID].addLayer(newLayer)
+    loadLayers(Clients[clientID], clientID); //TODO: only change no full reload
 }
 
-function deleteLayer(clientID, layerIndex, clientsApi, animationsApi) {
-    // Fetch the current client configuration
-    clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-        if (error) {
-            console.error('Error fetching client configuration:', error);
-            return;
-        }
-
-        // Remove the layer at the specified index
-        const updatedLayers = data.layers.filter((_, index) => index !== layerIndex);
-
-        // Update the client configuration without the deleted layer
-        clientsApi.apiClientSetClientIDPost({ layers: updatedLayers }, clientID, (error, data, response) => {
-            if (error) {
-                console.error('Error deleting layer:', error);
-                return;
-            }
-            console.log('Layer deleted successfully:', data);
-            // Reload the client configuration to reflect the deleted layer
-            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-                if (error) {
-                    console.error('Error re-fetching client configuration:', error);
-                    return;
-                }
-                loadLayers(data, clientID, clientsApi, animationsApi);
-            });
-        });
-    });
+function deleteLayer(clientID, layerIndex) {
+    Clients[clientID].removeLayer(layerIndex);
+    loadLayers(Clients[clientID], clientID);
 }
