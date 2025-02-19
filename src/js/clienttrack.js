@@ -122,7 +122,7 @@ class ClientConfigWithTracking extends ClientConfig {
             await new Promise((resolve, reject) => {
                 clientsApi.apiClientSetClientIDPost(send, this.ClientID, (error, data, response) => {
                     if (error) {
-                        handelError(error);
+                        console.error(error);
                         reject(error);
                         return;
                     }
