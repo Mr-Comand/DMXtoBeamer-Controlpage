@@ -97,7 +97,8 @@ function loadLayers(clientConfig, clientID) {
             layerElement.addEventListener('touchend', (event) => handleTouchEnd(event, clientID));
             layerElement.setAttribute('layerID', layer.layerID)
             const img = document.createElement('img');
-            img.src = layer.image;
+            img.alt="No img"
+            img.src = "http://127.0.0.1:8080/api/animation/image/"+layer.animationID;
 
             const title = document.createElement('div');
             title.classList.add('title');
