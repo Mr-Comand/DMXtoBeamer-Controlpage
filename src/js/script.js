@@ -2,11 +2,11 @@
 import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../../javascript-client-generated/src/index.js';
 import { pullClientList, Clients, pullAllClients, sendAllClients } from './apihandler.js'
 import { animationsApi,liveUpdate,setLiveUpdate } from './globals.js'
-function timeBasedUint16() {
+function timeBasedUint64() {
     const startYear = new Date("2000-01-01T00:00:00Z").getTime();
     const now = Date.now();
     const secondsSince2000 = Math.floor((now - startYear) / 1000);
-    return secondsSince2000 % 65536; // Ensure it fits in uint16
+    return secondsSince2000 % 9007199254740991; // Ensure it fits in uint16
 }
 let clientID
 document.addEventListener('DOMContentLoaded', async () => {
@@ -297,7 +297,7 @@ function openAddLayerMenu(clientID) {
 function submitAddLayerForm(selectedAnimation) {
     // Add the new layer to the existing layers
     const newLayer = Object.assign(new Layer(), {
-        layerID: timeBasedUint16(), // Unique ID //TODO: FIX ID
+        layerID: timeBasedUint64(), // Unique ID //TODO: FIX ID
         animationID: selectedAnimation,
         enabled: true,
         dimmer: 100,
