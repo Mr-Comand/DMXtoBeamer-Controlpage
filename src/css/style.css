@@ -41,7 +41,6 @@ body {
     align-items: center;
     padding: 10px 0;
     border-bottom: 1px solid #444;
-    cursor: move;
 }
 
 .option.dragging {
@@ -175,4 +174,21 @@ input:checked + .slider {
 
 input:checked + .slider:before {
     transform: translateX(14px);
+}
+.slider-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+}
+.slider-wrapper .slider-container{
+    display: flex;
+    justify-content: space-between;
+}
+.drag-handle{
+    cursor: grab;
+  width: 3em;
+  font-size: 80px;
+  height: 100%;
 }

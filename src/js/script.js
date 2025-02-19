@@ -112,30 +112,103 @@ function loadLayers(clientConfig, clientID) {
         layers.forEach((layer, index) => {
             const layerElement = document.createElement('div');
             layerElement.classList.add('option');
-            layerElement.draggable = true;
-            layerElement.addEventListener('dragstart', handleDragStart);
+            layerElement.setAttribute('layerID', layer.layerID);
+            const dragHandle = document.createElement('div');
+            dragHandle.draggable = true;
+            dragHandle.classList.add('drag-handle');
+            dragHandle.textContent = "⠿"; // Drag icon
+            dragHandle.style.cursor = "grab";
+            layerElement.appendChild(dragHandle);
+            // Drag event only when clicking the main element, not controls
+            dragHandle.addEventListener('dragstart', (event) => {
+                console.log(event.target)
+                handleDragStart(event);
+                if (event.target.closest('.drag-handle')) {
+                } else {
+                }
+            });
             layerElement.addEventListener('dragover', handleDragOver);
-            layerElement.addEventListener('drop', (event) => handleDrop(event));
-            layerElement.addEventListener('touchstart', handleTouchStart);
-            layerElement.addEventListener('touchmove', handleTouchMove);
-            layerElement.addEventListener('touchend', (event) => handleTouchEnd(event));
-            layerElement.setAttribute('layerID', layer.layerID)
+            layerElement.addEventListener('drop', handleDrop);
+
             const img = document.createElement('img');
-            img.alt="No img"
-            img.src = "http://127.0.0.1:8080/api/animation/image/"+layer.animationID;
+            img.alt = "No img";
+            img.src = `http://127.0.0.1:8080/api/animation/image/${layer.animationID}`;
 
             const title = document.createElement('div');
             title.classList.add('title');
             title.textContent = layer.animationID;
 
+            // Enable/Disable Switch
+            const switchContainer = document.createElement('div');
+            switchContainer.classList.add('switch-container');
+
+            const enableLabel = document.createElement('label');
+            enableLabel.textContent = 'Enabled:';
+
+            const enableSwitch = document.createElement('input');
+            enableSwitch.type = 'checkbox';
+            enableSwitch.checked = layer.enabled;
+            enableSwitch.addEventListener('change', (event) => {
+                event.stopPropagation(); // Prevent drag interference
+                layer.enabled = enableSwitch.checked;
+                console.log(`Layer ${layer.layerID} enabled:`, layer.enabled);
+            });
+
+            switchContainer.appendChild(enableLabel);
+            switchContainer.appendChild(enableSwitch);
+
+            // Slider Wrapper (Non-Draggable)
+            const sliderWrapper = document.createElement('div');
+            sliderWrapper.classList.add('slider-wrapper');
+
+            // Function to create sliders
+            function createSlider(labelText, prop, min, max, step = 1) {
+                const container = document.createElement('div');
+                container.classList.add('slider-container');
+
+                const label = document.createElement('label');
+                label.textContent = labelText;
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = min;
+                slider.max = max;
+                slider.step = step;
+                slider.value = layer[prop];
+                slider.addEventListener('input', (event) => {
+                    event.stopPropagation(); // Prevent drag interference
+                    layer[prop] = parseFloat(slider.value);
+                    console.log(`Layer ${layer.layerID} ${prop}:`, layer[prop]);
+                });
+
+                container.appendChild(label);
+                container.appendChild(slider);
+                return container;
+            }
+
+            // Create sliders for properties and add to wrapper
+            sliderWrapper.appendChild(createSlider("Dimmer", "dimmer", 0, 100));
+            sliderWrapper.appendChild(createSlider("Hue Shift", "hueShift", 0, 360));
+            sliderWrapper.appendChild(createSlider("Rotate", "rotate", 0, 360));
+            sliderWrapper.appendChild(createSlider("Pan", "pan", -180, 180));
+            sliderWrapper.appendChild(createSlider("Tilt", "tilt", -180, 180));
+            sliderWrapper.appendChild(createSlider("Scale", "scale", 1, 200));
+
+            // Delete button
             const deleteButton = document.createElement('div');
             deleteButton.classList.add('delete');
             deleteButton.textContent = '🗑️';
-            deleteButton.style.cursor = 'pointer'; // Set cursor to pointer
-            deleteButton.onclick = () => deleteLayer(clientID, index);
+            deleteButton.style.cursor = 'pointer';
+            deleteButton.onclick = (event) => {
+                event.stopPropagation(); // Prevent drag interference
+                deleteLayer(clientID, index);
+            };
 
+            // Append elements
             layerElement.appendChild(img);
             layerElement.appendChild(title);
+            layerElement.appendChild(switchContainer);
+            layerElement.appendChild(sliderWrapper); // Add the non-draggable wrapper
             layerElement.appendChild(deleteButton);
 
             content.appendChild(layerElement);
@@ -143,9 +216,11 @@ function loadLayers(clientConfig, clientID) {
     }
 }
 
+
 function handleDragStart(event) {
-    event.dataTransfer.setData('text/plain', event.target.dataset.index);
-    event.target.classList.add('dragging');
+    event.dataTransfer.setData('text/plain', event.target.parentElement.dataset.index);
+    event.target.parentElement.classList.add('dragging');
+    console.log(event.target.parentElement)
 }
 
 function handleDragOver(event) {
