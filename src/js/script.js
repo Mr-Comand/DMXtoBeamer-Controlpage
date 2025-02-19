@@ -109,10 +109,10 @@ function loadLayers(clientConfig, clientID) {
             layerElement.draggable = true;
             layerElement.addEventListener('dragstart', handleDragStart);
             layerElement.addEventListener('dragover', handleDragOver);
-            layerElement.addEventListener('drop', (event) => handleDrop(event, clientID));
+            layerElement.addEventListener('drop', (event) => handleDrop(event));
             layerElement.addEventListener('touchstart', handleTouchStart);
             layerElement.addEventListener('touchmove', handleTouchMove);
-            layerElement.addEventListener('touchend', (event) => handleTouchEnd(event, clientID));
+            layerElement.addEventListener('touchend', (event) => handleTouchEnd(event));
             layerElement.setAttribute('layerID', layer.layerID)
             const img = document.createElement('img');
             img.alt="No img"
@@ -159,14 +159,15 @@ function handleDragOver(event) {
     }
 }
 
-function handleDrop(event, clientID) {
+function handleDrop(event) {
     event.preventDefault();
     const draggingElement = document.querySelector('.dragging');
     draggingElement.classList.remove('dragging');
     const content = document.querySelector('.content');
     const options = Array.from(content.querySelectorAll('.option'));
-    const layerIDs = options.map(option => option.getAttribute('layerid'));
-    layerIDs.pop(-1)
+    let layerIDs = options.map(option => option.getAttribute('layerid'));
+    layerIDs = layerIDs.filter(Lid => Lid != undefined);
+
     let order = [];
     const layers = Clients[clientID].layers
     layerIDs.forEach(Lid => {
@@ -201,12 +202,13 @@ function handleTouchMove(event) {
     }
 }
 
-function handleTouchEnd(event, clientID) {
+function handleTouchEnd(event) {
     touchDraggingElement.classList.remove('dragging');
     const content = document.querySelector('.content');
     const options = Array.from(content.querySelectorAll('.option'));
-    const layerIDs = options.map(option => option.getAttribute('layerid'));
-    layerIDs.pop(-1)
+    let layerIDs = options.map(option => option.getAttribute('layerid'));
+    layerIDs = layerIDs.filter(Lid => Lid != undefined);
+    
     let order = [];
     const layers = Clients[clientID].layers
     layerIDs.forEach(Lid => {
@@ -288,7 +290,6 @@ function openAddLayerMenu(clientID) {
 
 function submitAddLayerForm(selectedAnimation) {
     // Add the new layer to the existing layers
-
     const newLayer = Object.assign(new Layer(), {
         layerID: Clients[clientID].layers.length + 1, // Unique ID //TODO: FIX ID
         animationID: selectedAnimation,
