@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setLiveUpdate(this.checked);
         console.log("Live Update:", liveUpdate);
     });
-    
+    document.getElementById('live-update-toggle').checked = liveUpdate;
     document.getElementById('pull-data').addEventListener('click', async function() {
         console.log("Pulling data...");
         await pullAllClients();
