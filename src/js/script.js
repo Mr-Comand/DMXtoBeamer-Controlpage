@@ -1,7 +1,8 @@
 // Import the necessary API client modules
 import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../../javascript-client-generated/src/index.js';
-import { pullClientList, Clients } from './apihandler.js'
-import { animationsApi } from './globals.js'
+import { pullClientList, Clients, pullAllClients, sendAllClients } from './apihandler.js'
+import { animationsApi,liveUpdate,setLiveUpdate } from './globals.js'
+let clientID
 document.addEventListener('DOMContentLoaded', async () => {
     // Load the client list
     await loadClientList();
@@ -20,6 +21,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             closePopup();
         }
     });
+    document.getElementById('live-update-toggle').addEventListener('change', function() {
+        setLiveUpdate(this.checked);
+        console.log("Live Update:", liveUpdate);
+    });
+    
+    document.getElementById('pull-data').addEventListener('click', async function() {
+        console.log("Pulling data...");
+        await pullAllClients();
+        await loadClientList()
+        loadLayers(Clients[clientID], clientID);
+    });
+    
+    document.getElementById('push-data').addEventListener('click', async function() {
+        console.log("Pushing data...");
+        await sendAllClients();
+    });
+    
 });
 
 async function loadClientList() {
@@ -52,7 +70,7 @@ function selectItem(element) {
     element.classList.add('selected');
 
     // Fetch the client configuration
-    const clientID = element.textContent;
+    clientID = element.textContent;
     console.log('Selected client ID:', clientID); // Debugging log
 
     console.log('Client configuration:', Clients[clientID]); // Debugging log

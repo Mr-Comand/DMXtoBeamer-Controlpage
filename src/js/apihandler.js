@@ -106,57 +106,10 @@ export async function pullAllClients() {
 
 export async function sendAllClients() {
     Object.entries(Clients).forEach(([clientID, client]) => {
-        sendClientConfig(clientID, client);
+        client.sendClientConfig();
     });
 }
-
-export async function sendClient(clientID) {
-    await sendClientConfig(clientID, Clients[clientID]);
-}
-
-export async function sendClientConfig(clientID, clientConfig) {
-    clientConfig.ClientID = clientID
-    new ClientConfigWithTracking().sendClientConfig(clientConfig)
-    // // Unwrap the proxy to get the original object
-    // const rawConfig = getTargetFromProxy(clientConfig);
-
-    // await new Promise((resolve, reject) => {
-    //     clientsApi.apiClientSetClientIDPost(rawConfig, clientID, (error, data, response) => {
-    //         if (error) {
-    //             handelError(error);
-    //             reject(error);
-    //             return;
-    //         }
-    //         resolve(data);
-    //     });
-    // });
-}
-
-ClientConfigWithTracking.prototype.send = async function sendClient(clientID) {
-    await sendClientConfig(clientID, this);
-};
 
 function handelError(error, ...parms) {
     console.error(error, parms);
 }
-// await pullClientList();
-// // sendAllClients();
-// Clients["a"].dimmer=10
-// Clients["a"].layers[0].dimmer=100
-// // Define a new layer
-// const newLayer = new Layer(); // Or construct a new layer with its properties
-// newLayer.dimmer = 0.5;
-// newLayer.hueShift = 15;
-// newLayer.rotate = 30;
-// newLayer.pan = 10;
-// newLayer.tilt = 5;
-// newLayer.scale = 1;
-
-// // Add the new layer to Clients["a"]
-// Clients["a"].addLayer(newLayer); // This will automatically be tracked by the Proxy
-// Clients["a"].layers[1].dimmer=100
-// console.log(typeof Clients)
-// debugger
-// Clients["a"].sendClientConfig()
-// debugger
-
