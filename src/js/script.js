@@ -357,9 +357,6 @@ function openPopup(formElements) {
     popup.style.display = 'flex';
 }
 
-function closePopup() {
-    document.getElementById('popup').style.display = 'none';
-}
 
 function openAddLayerMenu(clientID) {
     // Fetch the list of available animations
