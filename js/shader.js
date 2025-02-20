@@ -15,6 +15,7 @@ export function openShaderSettingsPopup(layer, shaderID, clientID) {
         max: value.max,
         stepSize: value.stepSize,
         default: value.default,
+        options: value.enumElements,
         value: layer.textureShaders[shaderID][key] || value._default // Load current layer value
     })), TextureShaders[shaderID].shaderName || shaderID);
 
@@ -23,32 +24,34 @@ export function openShaderSettingsPopup(layer, shaderID, clientID) {
         input.addEventListener('input', (event) => {
             const fieldName = event.target.name;
             let newValue;
-    
+
             switch (event.target.type) {
                 case 'checkbox':
                     newValue = event.target.checked;
                     break;
                 case 'range':
                 case 'number':
+                case 'select-one':
                     newValue = parseFloat(event.target.value);
                     break;
                 case 'color':
                 case 'text':
                 case 'textarea':
-                case 'select-one':
                     newValue = event.target.value;
                     break;
                 default:
                     newValue = event.target.value;
             }
-    
+            if (newValue === undefined || Number.isNaN(newValue)) {
+                newValue = Animations[layer.animationID].parameters[fieldName]._default;
+            }
             if (!layer.textureShaders[shaderID]) {
                 layer.textureShaders[shaderID] = {};
             }
             layer.textureShaders[shaderID][fieldName] = newValue;  // Update the layer property
         });
     });
-    
+
 }
 
 function openPopup(formElements, name) {

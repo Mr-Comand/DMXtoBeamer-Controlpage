@@ -12,7 +12,8 @@ export function openAnimationSettingsPopup(layer, clientID) {
         min: value.min,
         max: value.max,
         stepSize: value.stepSize,
-        value: layer.parameters[key] || value._default
+        options: value.enumElements,
+        value: layer.parameters[key] !== undefined ? layer.parameters[key] : value._default
     })));
     
     // Update the layer's property immediately as the user adjusts sliders/input fields
@@ -27,16 +28,19 @@ export function openAnimationSettingsPopup(layer, clientID) {
                     break;
                 case 'range':
                 case 'number':
+                case 'select-one':
                     newValue = parseFloat(event.target.value);
                     break;
                 case 'color':
                 case 'text':
                 case 'textarea':
-                case 'select-one':
                     newValue = event.target.value;
                     break;
                 default:
                     newValue = event.target.value;
+            }
+            if (newValue===undefined || Number.isNaN(newValue)){
+                newValue=Animations[layer.animationID].parameters[fieldName]._default;
             }
             layer.parameters[fieldName] = newValue;  // Update the layer property
         });

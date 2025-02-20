@@ -40,11 +40,11 @@ export function createInputElement(element) {
         case 'enum':
             input = document.createElement('select');
             if (element.options) {
-                element.options.forEach(option => {
+                element.options.forEach((option, index) => {
                     const optionElement = document.createElement('option');
-                    optionElement.value = option;
+                    optionElement.value = index; // Set value as index
                     optionElement.textContent = option;
-                    if (option === element.value) {
+                    if (index == element.value) {
                         optionElement.selected = true;
                     }
                     input.appendChild(optionElement);
