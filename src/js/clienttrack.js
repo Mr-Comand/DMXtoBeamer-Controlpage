@@ -1,5 +1,5 @@
 import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer, ClientConfig } from '../../javascript-client-generated/src/index.js';
-import {liveUpdate, apiClient, clientsApi} from './globals.js'
+import { liveUpdate, apiClient, clientsApi } from './globals.js'
 
 
 const proxies = new WeakSet();
@@ -75,7 +75,9 @@ class ClientConfigWithTracking extends ClientConfig {
         // Wrap the 'layers' array in a Proxy to track changes
         if (instance.layers && Array.isArray(instance.layers)) {
             instance.layers = instance.layers.map(layer => {
-                return createFindableProxy(layer, {
+                layer = LayerWithTracking.constructFromObject(layer, () => { instance.sendLive() });
+                return layer;
+                createFindableProxy(layer, {
                     set(target, property, value) {
                         console.log(`Layer property '${property}' changed to`, value);
                         target[property] = value; // Apply the change to the layer
@@ -103,7 +105,7 @@ class ClientConfigWithTracking extends ClientConfig {
         });
     }
     async sendLive(clientConfig) {
-        if  (liveUpdate){
+        if (liveUpdate) {
             this.sendClientConfig(clientConfig)
         }
     }
@@ -115,10 +117,10 @@ class ClientConfigWithTracking extends ClientConfig {
         }
         if (clientConfig.ClientID != undefined && clientConfig.ClientID != "" && !clientConfig.disableUpdates) {
             console.log("sending update")
-            
-                let send = ClientConfig.constructFromObject(clientConfig)
-                send.layers = clientConfig._layers
-            
+
+            let send = ClientConfig.constructFromObject(clientConfig)
+            send.layers = clientConfig._layers
+            send.layers = send.layers.map(layer => { let sendLayer = Layer.constructFromObject(layer); sendLayer.parameters = layer.parameters; return sendLayer })
             await new Promise((resolve, reject) => {
                 clientsApi.apiClientSetClientIDPost(send, this.ClientID, (error, data, response) => {
                     if (error) {
@@ -140,17 +142,17 @@ class ClientConfigWithTracking extends ClientConfig {
         if (index < 0 || index > this._layers.length) {
             throw new Error("Invalid index");
         }
-        if (!isProxy(layer)) {
-            const client = this
-            layer = createFindableProxy(layer, {
-                set(target, property, value) {
-                    console.log(`Layer property '${property}' changed to`, value);
-                    target[property] = value; // Apply the change to the layer
-                    client.sendLive(client)
-                    return true; // Indicate that the operation was successful
-                }
-            });
-        }
+        const client = this
+        layer = LayerWithTracking.constructFromObject(layer, () => { client.sendLive() })
+        // layer = createFindableProxy(layer, {
+        //     set(target, property, value) {
+        //         console.log(`Layer property '${property}' changed to`, value);
+        //         target[property] = value; // Apply the change to the layer
+        //         client.sendLive(client)
+        //         return true; // Indicate that the operation was successful
+        //     }
+        // });
+
 
         this._layers.splice(index, 0, layer);  // Insert layer at the specified index
         this.sendLive()
@@ -187,3 +189,91 @@ class ClientConfigWithTracking extends ClientConfig {
 
 
 export default ClientConfigWithTracking;
+
+
+class LayerWithTracking extends Layer {
+    constructor(ClientUpdater) {
+        super(); // Call the parent class constructor
+        // Wrap the layers array in a Proxy to track changes
+        this.ClientUpdater = ClientUpdater;
+        this.disableUpdates = false;
+
+        return this.createProxy(this);
+
+    }
+    static constructFromObject(data, client) {
+        let instance = new LayerWithTracking(client);
+        instance.disableUpdates = true
+        if (data.parameters == null) {
+            data.parameters = {}
+        }
+        instance = super.constructFromObject(data, instance); // Call the parent method to construct the object
+
+        instance.disableUpdates = false
+        // Wrap the rest of the properties in a Proxy to track changes
+        return instance
+    }
+    // Set the parameters and handle changes
+    set parameters(value) {
+        if (!value) {
+            // Initialize an empty object as the parameters
+            this._parameters = new Proxy({}, {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        } else {
+            // Wrap the parameters object in a Proxy to detect internal changes
+            this._parameters = new Proxy(value, {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        }
+
+        // Initial live update when parameters are set
+        this.ClientUpdater();
+    }
+
+    get parameters() {
+        if (!this._parameters || this._parameters == null) {
+            this._parameters = new Proxy({}, {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        }
+        return this._parameters;
+    }
+    // Create Proxy for the whole ClientConfig object
+    createProxy(target) {
+        return createFindableProxy(target, {
+            set: (obj, prop, value) => {
+                if (prop === 'layers' || prop in obj) {
+                    console.log(`Property '${prop}' changed to:`, value);
+                    this.ClientUpdater(); // Send updated config if liveUpdate is enabled
+                }
+                obj[prop] = value;
+                return true;
+            }
+        });
+    }
+}

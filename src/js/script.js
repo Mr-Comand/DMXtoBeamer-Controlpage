@@ -2,6 +2,7 @@
 import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../../javascript-client-generated/src/index.js';
 import { pullClientList, Clients, pullAllClients, sendAllClients } from './apihandler.js'
 import { animationsApi,liveUpdate,setLiveUpdate } from './globals.js'
+import { openAnimationSettingsPopup } from './animationsettings.js'
 function timeBasedUint64() {
     const startYear = new Date("2000-01-01T00:00:00Z").getTime();
     const now = Date.now();
@@ -193,7 +194,13 @@ function loadLayers(clientConfig, clientID) {
             sliderWrapper.appendChild(createSlider("Pan", "pan", -180, 180));
             sliderWrapper.appendChild(createSlider("Tilt", "tilt", -180, 180));
             sliderWrapper.appendChild(createSlider("Scale", "scale", 1, 200));
-
+            // Additional settings button
+            const additionalSettingsButton = document.createElement('button');
+            additionalSettingsButton.textContent = 'Additional Settings';
+            additionalSettingsButton.addEventListener('click', () => {
+                openAnimationSettingsPopup(layer, clientID);
+            });
+            layerElement.appendChild(additionalSettingsButton);
             // Delete button
             const deleteButton = document.createElement('div');
             deleteButton.classList.add('delete');
