@@ -1,4 +1,4 @@
-export function openAnimationSettingsPopup(layer, clientID) {
+export function openShaderSettingsPopup(layer, shaderID, clientID) {
     const settings = {
         "BallCount": {
             "type": "number",
@@ -57,21 +57,28 @@ export function openAnimationSettingsPopup(layer, clientID) {
         stepSize: value.stepSize,
         default: value.default,
         value: layer[key] || value.default // Load current layer value
-    })));
+    })), shaderID);
 
     // Update the layer's property immediately as the user adjusts sliders/input fields
     document.querySelectorAll('.popup input').forEach(input => {
         input.addEventListener('input', (event) => {
             const fieldName = event.target.name;
             const newValue = event.target.value;
-            layer.parameters[fieldName] = newValue;  // Update the layer property
+            if (!layer.textureShaders[shaderID]) {
+                layer.textureShaders[shaderID] = {};
+            }
+            layer.textureShaders[shaderID][fieldName] = newValue;  // Update the layer property
         });
     });
 }
 
-function openPopup(formElements) {
+function openPopup(formElements, name) {
     const popup = document.getElementById('popup');
-    const form = document.getElementById('settings-form');
+    const shaderPopup = document.querySelector('.popup-content.shader');
+    const heading = document.querySelector('.popup-content.shader > h2');
+    heading.innerHTML = name;
+    const form = document.getElementById('shader-settings-form');
+    shaderPopup.style.display = "unset"
     form.innerHTML = ''; // Clear existing form elements
 
     formElements.forEach(element => {
@@ -124,17 +131,9 @@ function openPopup(formElements) {
         form.appendChild(container);
     });
 
-    const submitButton = document.createElement('button');
-    submitButton.type = 'submit';
-    submitButton.textContent = 'Save Settings';
-    form.appendChild(submitButton);
-
-    popup.style.display = 'flex';
 }
 
-export function closePopup() {
-    document.getElementById('popup').style.display = 'none';
+export function closeShaderPopup() {
     document.querySelector('.popup-content.shader').style.display = 'none';
-
 }
-window.closePopup = closePopup
+window.closeShaderPopup = closeShaderPopup

@@ -83,6 +83,7 @@ body {
     background-color: rgba(0, 0, 0, 0.7);
     justify-content: center;
     align-items: center;
+
 }
 
 .popup-content {
@@ -93,6 +94,12 @@ body {
     max-width: 80%;
     position: relative;
     color: #e0e0e0;
+    margin: 10px;
+}
+
+.popup-content.shader {
+    margin: 10px;
+    display: none;
 }
 
 .close {
@@ -124,6 +131,7 @@ button {
 button:hover {
     background-color: #444;
 }
+
 .controls {
     margin: 10px;
     display: flex;
@@ -168,13 +176,14 @@ button:hover {
     border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
     background-color: #4CAF50;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     transform: translateX(14px);
 }
+
 .slider-wrapper {
     display: flex;
     flex-direction: column;
@@ -182,13 +191,15 @@ input:checked + .slider:before {
     background: rgba(0, 0, 0, 0.05);
     border-radius: 8px;
 }
-.slider-wrapper .slider-container{
+
+.slider-wrapper .slider-container {
     display: flex;
     justify-content: space-between;
 }
-.drag-handle{
+
+.drag-handle {
     cursor: grab;
-  width: 3em;
-  font-size: 80px;
-  height: 100%;
+    width: 3em;
+    font-size: 80px;
+    height: 100%;
 }

@@ -120,7 +120,7 @@ class ClientConfigWithTracking extends ClientConfig {
 
             let send = ClientConfig.constructFromObject(clientConfig)
             send.layers = clientConfig._layers
-            send.layers = send.layers.map(layer => { let sendLayer = Layer.constructFromObject(layer); sendLayer.parameters = layer.parameters; return sendLayer })
+            send.layers = send.layers.map(layer => { let sendLayer = Layer.constructFromObject(layer); sendLayer.parameters = layer.parameters; sendLayer.textureShaderOrder = layer.textureShaderOrder; sendLayer.textureShaders = layer.textureShaders; return sendLayer })
             await new Promise((resolve, reject) => {
                 clientsApi.apiClientSetClientIDPost(send, this.ClientID, (error, data, response) => {
                     if (error) {
@@ -263,6 +263,56 @@ class LayerWithTracking extends Layer {
         }
         return this._parameters;
     }
+
+    // Set the parameters and handle changes
+    set textureShaderOrder(value) {
+        if (!value) {
+            // Initialize an empty object as the parameters
+            this._textureShaderOrder = new Proxy([], {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        } else {
+            // Wrap the parameters object in a Proxy to detect internal changes
+            this._textureShaderOrder = new Proxy(value, {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        }
+        // Initial live update when parameters are set
+        this.ClientUpdater();
+    }
+
+    get textureShaderOrder() {
+        if (!this._textureShaderOrder || this._textureShaderOrder == null) {
+            this._textureShaderOrder = new Proxy([], {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        }
+        return this._textureShaderOrder;
+    }
     // Create Proxy for the whole ClientConfig object
     createProxy(target) {
         return createFindableProxy(target, {
@@ -275,5 +325,146 @@ class LayerWithTracking extends Layer {
                 return true;
             }
         });
+    }
+
+    // Add a layer at a specific index
+    addTextureShader(layer, index) {
+        if (!index) {
+            index = this._textureShaderOrder.length;
+        }
+        if (index < 0 || index > this._textureShaderOrder.length) {
+            throw new Error("Invalid index");
+        }
+        this._textureShaderOrder.splice(index, 0, layer);  // Insert layer at the specified index
+        this.ClientUpdater();
+
+        console.log(`Layer added at index ${index}`);
+    }
+
+    // Remove a layer by index
+    removeTextureShader(index) {
+        if (index < 0 || index >= this._textureShaderOrder.length) {
+            throw new Error("Invalid index");
+        }
+        this._textureShaderOrder.splice(index, 1);  // Remove the layer at the specified index
+        this.ClientUpdater
+        console.log(`Layer removed at index ${index}`);
+    }
+
+    // Reorder layers by the given order (array of indices)
+    reorderTextureShader(newOrder) {
+        if (!Array.isArray(newOrder)) {
+            throw new Error("The new order must be an array of indices.");
+        }
+
+        if (newOrder.length !== this._textureShaderOrder.length) {
+            throw new Error("New order must have the same length as the current layers array.");
+        }
+
+        const reorderedLayers = newOrder.map(index => this._textureShaderOrder[index]);
+        this._textureShaderOrder = reorderedLayers;  // Set the layers to the new order
+        this.ClientUpdater()
+        console.log(`Layers reordered:`, newOrder);
+    }
+    // Set the parameters and handle changes
+    set textureShaders(value) {
+        if (!value) {
+            // Initialize an empty object as the parameters
+            this._textureShader = new Proxy({}, {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    newValue = new Proxy(newValue, {
+                        set: (target, prop, newValue) => {
+                            const oldValue = target[prop];
+                            target[prop] = newValue;
+                            if (oldValue !== newValue) {
+                                // Trigger liveUpdate if the value changes
+                                this.ClientUpdater();
+                            }
+                            return true; // Return true to indicate the assignment was successful
+                        }
+                    });
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        } else {
+            // Wrap the parameters object in a Proxy to detect internal changes
+            if (value !== null && typeof value === 'object') {
+                let newValue = {}
+                Object.entries(value).forEach(([key, IValue]) => {
+                    newValue[key] = new Proxy(IValue, {
+                        set: (target, prop, newValue) => {
+                            const oldValue = target[prop];
+                            target[prop] = newValue;
+                            if (oldValue !== newValue) {
+                                // Trigger liveUpdate if the value changes
+                                this.ClientUpdater();
+                            }
+                            return true; // Return true to indicate the assignment was successful
+                        }
+                    });
+
+                });
+
+                value = newValue
+            }
+            this._textureShader = new Proxy(value, {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    newValue = new Proxy(newValue, {
+                        set: (target, prop, newValue) => {
+                            const oldValue = target[prop];
+                            target[prop] = newValue;
+                            if (oldValue !== newValue) {
+                                // Trigger liveUpdate if the value changes
+                                this.ClientUpdater();
+                            }
+                            return true; // Return true to indicate the assignment was successful
+                        }
+                    });
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        }
+        // Initial live update when parameters are set
+        this.ClientUpdater();
+    }
+
+    get textureShaders() {
+        if (!this._textureShader || this._textureShader == null) {
+            this._textureShader = new Proxy({}, {
+                set: (target, prop, newValue) => {
+                    const oldValue = target[prop];
+                    newValue = new Proxy(newValue, {
+                        set: (target, prop, newValue) => {
+                            const oldValue = target[prop];
+                            target[prop] = newValue;
+                            if (oldValue !== newValue) {
+                                // Trigger liveUpdate if the value changes
+                                this.ClientUpdater();
+                            }
+                            return true; // Return true to indicate the assignment was successful
+                        }
+                    });
+                    target[prop] = newValue;
+                    if (oldValue !== newValue) {
+                        // Trigger liveUpdate if the value changes
+                        this.ClientUpdater();
+                    }
+                    return true; // Return true to indicate the assignment was successful
+                }
+            });
+        }
+        return this._textureShader;
     }
 }

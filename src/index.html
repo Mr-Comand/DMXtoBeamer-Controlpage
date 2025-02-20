@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=WeakRef,BigInt"></script>
     <script src="https://cdn.jsdelivr.net/npm/superagent"></script>
 </head>
+
 <body>
     <div class="controls">
         <label class="switch">
@@ -36,6 +38,12 @@
                 <!-- Form elements will be dynamically loaded here -->
             </form>
         </div>
+        <div class="popup-content shader">
+            <span class="close" onclick="closeShaderPopup()">&times;</span>
+            <h2>Settings</h2>
+            <form id="shader-settings-form">
+            </form>
+        </div>
     </div>
     <div class="add-layer-container" style="display: none;">
         <h3>Add new layer:</h3>
@@ -46,4 +54,5 @@
     </div>
     <script src="js/script.js" type="module"></script>
 </body>
+
 </html>

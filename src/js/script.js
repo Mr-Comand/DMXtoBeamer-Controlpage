@@ -1,8 +1,9 @@
 // Import the necessary API client modules
 import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../../javascript-client-generated/src/index.js';
 import { pullClientList, Clients, pullAllClients, sendAllClients } from './apihandler.js'
-import { animationsApi,liveUpdate,setLiveUpdate } from './globals.js'
+import { animationsApi, liveUpdate, setLiveUpdate } from './globals.js'
 import { openAnimationSettingsPopup } from './animationsettings.js'
+import { openShaderOrderPopup } from './shaderOrder.js';
 function timeBasedUint64() {
     const startYear = new Date("2000-01-01T00:00:00Z").getTime();
     const now = Date.now();
@@ -23,24 +24,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Close popup when clicking outside of it
     document.addEventListener('mousedown', (event) => {
         const popup = document.getElementById('popup');
-        const popupContent = document.querySelector('.popup-content');
-        if (popup.style.display === 'flex' && !popupContent.contains(event.target)) {
+        const popupContent = document.querySelectorAll('.popup-content');
+        let contains = false;
+        popupContent.forEach((popupContent) => {
+            if (popupContent.contains(event.target)) {
+                contains = true;
+            }
+        });
+        if (popup.style.display === 'flex' && !contains) {
             closePopup();
         }
     });
-    document.getElementById('live-update-toggle').addEventListener('change', function() {
+    document.getElementById('live-update-toggle').addEventListener('change', function () {
         setLiveUpdate(this.checked);
         console.log("Live Update:", liveUpdate);
     });
     document.getElementById('live-update-toggle').checked = liveUpdate;
-    document.getElementById('pull-data').addEventListener('click', async function() {
+    document.getElementById('pull-data').addEventListener('click', async function () {
         console.log("Pulling data...");
         await pullAllClients();
         await loadClientList()
         loadLayers(Clients[clientID], clientID);
     });
-    
-    document.getElementById('push-data').addEventListener('click', async function() {
+
+    document.getElementById('push-data').addEventListener('click', async function () {
         console.log("Pushing data...");
         await sendAllClients();
     });
@@ -95,7 +102,7 @@ function selectItem(element) {
 
     // Load options based on the client configuration
     loadLayers(Clients[clientID], clientID);
-    
+
 }
 
 function loadLayers(clientConfig, clientID) {
@@ -201,6 +208,13 @@ function loadLayers(clientConfig, clientID) {
                 openAnimationSettingsPopup(layer, clientID);
             });
             layerElement.appendChild(additionalSettingsButton);
+            // Additional settings button
+            const ShaderorderButton = document.createElement('button');
+            ShaderorderButton.textContent = 'Layer order';
+            ShaderorderButton.addEventListener('click', () => {
+                openShaderOrderPopup(layer, clientID);
+            });
+            layerElement.appendChild(ShaderorderButton);
             // Delete button
             const deleteButton = document.createElement('div');
             deleteButton.classList.add('delete');
@@ -296,7 +310,7 @@ function handleTouchEnd(event) {
     const options = Array.from(content.querySelectorAll('.option'));
     let layerIDs = options.map(option => option.getAttribute('layerid'));
     layerIDs = layerIDs.filter(Lid => Lid != undefined);
-    
+
     let order = [];
     const layers = Clients[clientID].layers
     layerIDs.forEach(Lid => {
