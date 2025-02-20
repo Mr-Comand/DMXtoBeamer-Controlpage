@@ -1,5 +1,5 @@
 // Import the necessary API client modules
-import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../../javascript-client-generated/src/index.js';
+import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../javascript-client-generated/src/index.js';
 import { pullClientList, Clients, pullAllClients, sendAllClients } from './apihandler.js'
 import { animationsApi, liveUpdate, setLiveUpdate } from './globals.js'
 import { openAnimationSettingsPopup } from './animationsettings.js'

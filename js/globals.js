@@ -1,4 +1,4 @@
-import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer, ClientConfig } from '../../javascript-client-generated/src/index.js';
+import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer, ClientConfig } from '../javascript-client-generated/src/index.js';
 
 export let liveUpdate = true;
 export let rePullInterval = 1;
