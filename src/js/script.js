@@ -131,15 +131,13 @@ function loadLayers(clientConfig, clientID) {
             layerElement.appendChild(dragHandle);
             // Drag event only when clicking the main element, not controls
             dragHandle.addEventListener('dragstart', (event) => {
-                console.log(event.target)
                 handleDragStart(event);
-                if (event.target.closest('.drag-handle')) {
-                } else {
-                }
             });
             layerElement.addEventListener('dragover', handleDragOver);
             layerElement.addEventListener('drop', handleDrop);
-
+            dragHandle.addEventListener('touchstart', handleTouchStart);
+            layerElement.addEventListener('touchmove', handleTouchMove);
+            layerElement.addEventListener('touchend', (event) => handleTouchEnd(event));
             const img = document.createElement('img');
             img.alt = "No img";
             img.src = `http://127.0.0.1:8080/api/animation/image/${layer.animationID}`;
@@ -311,6 +309,7 @@ function handleTouchMove(event) {
 }
 
 function handleTouchEnd(event) {
+    // event.preventDefault();
     touchDraggingElement.classList.remove('dragging');
     const content = document.querySelector('.content');
     const options = Array.from(content.querySelectorAll('.option'));

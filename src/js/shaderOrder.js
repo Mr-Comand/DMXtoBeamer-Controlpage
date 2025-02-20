@@ -6,11 +6,14 @@ export function openShaderOrderPopup(layer, clientID) {
     openPopup(layer.textureShaderOrder, layer);
 }
 let settingsIndex = undefined;
+let touchStartY = 0;
+let touchDraggedElement = null;
 function openPopup(shaders, layer) {
     const popup = document.getElementById('popup');
     const form = document.getElementById('settings-form');
     form.innerHTML = ''; // Clear existing form elements
-
+    const shaderLayers = document.createElement('div');
+    shaderLayers.id = 'shaderLayers';
     shaders.forEach((shader, index) => {
         const container = document.createElement('div');
         container.classList.add('form-element');
@@ -33,6 +36,9 @@ function openPopup(shaders, layer) {
         });
         shaderElement.addEventListener('dragover', handleDragOver);
         shaderElement.addEventListener('drop', (event) => handleDrop(event, layer));
+        dragHandle.addEventListener('touchstart', handleTouchStart);
+        shaderElement.addEventListener('touchmove', handleTouchMove);
+        shaderElement.addEventListener('touchend', (event) => handleTouchEnd(event, layer));
         const label = document.createElement('div');
         label.innerText = shader
         shaderElement.appendChild(label);
@@ -66,9 +72,9 @@ function openPopup(shaders, layer) {
         shaderElement.appendChild(deleteButton);
 
         container.appendChild(shaderElement);
-        form.appendChild(container);
+        shaderLayers.appendChild(container);
     });
-
+    form.appendChild(shaderLayers);
     // Add dropdown and button to add shader
     const container = document.createElement('div');
     container.classList.add('form-element');
@@ -111,7 +117,7 @@ function handleDragOver(event) {
     const draggedElement = document.querySelector('.dragging');
 
     if (targetElement && draggedElement !== targetElement) {
-        const form = document.getElementById('settings-form');
+        const form = document.getElementById('shaderLayers');
         const children = Array.from(form.children);
         const draggingIndex = children.indexOf(draggedElement.parentElement);
         const targetIndex = children.indexOf(targetElement.parentElement);
@@ -131,7 +137,7 @@ function handleDrop(event, layer) {
     if (draggedElement) {
         draggedElement.classList.remove('dragging');
 
-        const form = document.getElementById('settings-form');
+        const form = document.getElementById('shaderLayers');
         const children = Array.from(form.querySelectorAll(".shader > .option"));
 
         const newOrder = Array.from(children).map(container =>
@@ -139,6 +145,50 @@ function handleDrop(event, layer) {
         );
 
         layer.reorderTextureShader(newOrder);
+        openPopup(layer.textureShaderOrder, layer);
     }
 }
 
+function handleTouchStart(event) {
+    touchStartY = event.touches[0].clientY;
+    const touchDraggingElement = event.target.closest('.option');
+
+    touchDraggingElement.classList.add('dragging');
+}
+
+function handleTouchMove(event) {
+    event.preventDefault();
+    const touchDraggingElement = document.querySelector('.dragging');
+    const touchCurrentY = event.touches[0].clientY;
+    const content = document.getElementById('shaderLayers');
+    const options = Array.from(content.querySelectorAll('.option'));
+    const targetElement = document.elementFromPoint(event.touches[0].clientX, touchCurrentY)?.closest('.option');
+    if (targetElement && targetElement !== touchDraggingElement) {
+        const draggingIndex = options.indexOf(touchDraggingElement.parentElement);
+        const targetIndex = options.indexOf(targetElement.parentElement);
+        if (draggingIndex < targetIndex) {
+            content.insertBefore(touchDraggingElement.parentElement, targetElement.parentElement.nextSibling);
+        } else {
+            content.insertBefore(touchDraggingElement.parentElement, targetElement.parentElement);
+        }
+    }
+}
+
+function handleTouchEnd(event,layer) {
+    const touchDraggingElement = document.querySelector('.dragging');
+    event.preventDefault();
+    
+    if (touchDraggingElement) {
+        touchDraggingElement.classList.remove('dragging');
+
+        const form = document.getElementById('shaderLayers');
+        const children = Array.from(form.querySelectorAll(".shader > .option"));
+
+        const newOrder = Array.from(children).map(container =>
+            container.getAttribute("index") - 0
+        );
+
+        layer.reorderTextureShader(newOrder);
+        openPopup(layer.textureShaderOrder, layer);
+    }
+}
