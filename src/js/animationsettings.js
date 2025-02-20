@@ -1,51 +1,8 @@
+import { createInputElement } from "./settingsPopup.js";
+import { Animations } from "./staticData.js";
+
 export function openAnimationSettingsPopup(layer, clientID) {
-    const settings = {
-        "BallCount": {
-            "type": "number",
-            "min": 1,
-            "max": 50,
-            "default": layer.parameters.BallCount || 5,
-            "stepSize": 1
-        },
-        "Color": {
-            "type": "color",
-            "default": layer.parameters.Color || "#000000", // Default color
-            "stepSize": 1
-        },
-        "Shape": {
-            "type": "enum",
-            "min": 1,
-            "max": 50,
-            "default": layer.parameters.Shape || 5,
-            "stepSize": 1
-        },
-        "Hollow": {
-            "type": "bool",
-            "default": layer.parameters.Hollow || false, // Default boolean
-            "stepSize": 1
-        },
-        "LineWidth": {
-            "type": "number",
-            "min": 1,
-            "max": 50,
-            "default": layer.parameters.LineWidth || 5,
-            "stepSize": 1
-        },
-        "Rotation": {
-            "type": "number",
-            "min": 1,
-            "max": 50,
-            "default": layer.parameters.Rotation || 5,
-            "stepSize": 1
-        },
-        "AverageSpeed": {
-            "type": "number",
-            "min": 1,
-            "max": 5000,
-            "default": layer.parameters.AverageSpeed || 1000,
-            "stepSize": 0.1
-        }
-    };
+    const settings = Animations[layer.animationID].parameters
 
     // Open the popup with settings specific to this layer
     openPopup(Object.entries(settings).map(([key, value]) => ({
@@ -55,18 +12,36 @@ export function openAnimationSettingsPopup(layer, clientID) {
         min: value.min,
         max: value.max,
         stepSize: value.stepSize,
-        default: value.default,
-        value: layer[key] || value.default // Load current layer value
+        value: layer.parameters[key] || value._default
     })));
-
+    
     // Update the layer's property immediately as the user adjusts sliders/input fields
-    document.querySelectorAll('.popup input').forEach(input => {
+    document.querySelectorAll('.popup input, .popup select, .popup textarea').forEach(input => {
         input.addEventListener('input', (event) => {
             const fieldName = event.target.name;
-            const newValue = event.target.value;
+            let newValue;
+    
+            switch (event.target.type) {
+                case 'checkbox':
+                    newValue = event.target.checked;
+                    break;
+                case 'range':
+                case 'number':
+                    newValue = parseFloat(event.target.value);
+                    break;
+                case 'color':
+                case 'text':
+                case 'textarea':
+                case 'select-one':
+                    newValue = event.target.value;
+                    break;
+                default:
+                    newValue = event.target.value;
+            }
             layer.parameters[fieldName] = newValue;  // Update the layer property
         });
     });
+    
 }
 
 function openPopup(formElements) {
@@ -82,52 +57,13 @@ function openPopup(formElements) {
         label.textContent = element.description || element.name;
         container.appendChild(label);
 
-        let input;
-        if (element.type === 'range') {
-            input = document.createElement('input');
-            input.type = 'range';
-            input.min = element.min;
-            input.max = element.max;
-            input.step = element.stepSize;
-            input.value = element.default;
-        } else if (element.type === 'color') {
-            input = document.createElement('input');
-            input.type = 'color';
-            input.value = element.default;
-        } else if (element.type === 'enum') {
-            input = document.createElement('select');
-            if (element.options)
-                element.options.forEach(option => {
-                    const optionElement = document.createElement('option');
-                    optionElement.value = option;
-                    optionElement.textContent = option;
-                    if (option === element.default) {
-                        optionElement.selected = true;
-                    }
-                    input.appendChild(optionElement);
-                });
-        } else if (element.type === 'checkbox') {
-            input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = element.default;
-        } else {
-            input = document.createElement('input');
-            input.type = 'number';
-            input.min = element.min;
-            input.max = element.max;
-            input.step = element.stepSize;
-            input.value = element.default;
-        }
+        let input = createInputElement(element);
 
         input.name = element.name;
         container.appendChild(input);
         form.appendChild(container);
     });
 
-    const submitButton = document.createElement('button');
-    submitButton.type = 'submit';
-    submitButton.textContent = 'Save Settings';
-    form.appendChild(submitButton);
 
     popup.style.display = 'flex';
 }

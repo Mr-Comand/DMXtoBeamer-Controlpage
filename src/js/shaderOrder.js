@@ -1,6 +1,6 @@
 import { openShaderSettingsPopup, closeShaderPopup } from "./shader.js";
+import { TextureShaders } from "./staticData.js";
 
-const textureShaderOptions = ["kaleidoscope", "rainbowwave", "prism"]
 export function openShaderOrderPopup(layer, clientID) {
     // Open the popup with settings specific to this layer
     openPopup(layer.textureShaderOrder, layer);
@@ -77,10 +77,10 @@ function openPopup(shaders, layer) {
     const dropdown = document.createElement('select');
     dropdown.id = 'shader-dropdown';
 
-    textureShaderOptions.forEach(option => {
+    Object.keys(TextureShaders).forEach(option => {
         const optionElement = document.createElement('option');
         optionElement.value = option;
-        optionElement.innerText = option;
+        optionElement.innerText = TextureShaders[option].shaderName || option;
         dropdown.appendChild(optionElement);
     });
 

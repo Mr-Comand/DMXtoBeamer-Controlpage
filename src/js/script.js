@@ -4,6 +4,7 @@ import { pullClientList, Clients, pullAllClients, sendAllClients } from './apiha
 import { animationsApi, liveUpdate, setLiveUpdate } from './globals.js'
 import { openAnimationSettingsPopup } from './animationsettings.js'
 import { openShaderOrderPopup } from './shaderOrder.js';
+import { Animations, pullStaticData } from './staticData.js';
 function timeBasedUint64() {
     const startYear = new Date("2000-01-01T00:00:00Z").getTime();
     const now = Date.now();
@@ -14,7 +15,7 @@ let clientID
 document.addEventListener('DOMContentLoaded', async () => {
     // Load the client list
     await loadClientList();
-
+    await pullStaticData();
     // Select the first item by default
     const firstItem = document.querySelector('.item');
     if (firstItem) {
@@ -121,6 +122,7 @@ function loadLayers(clientConfig, clientID) {
             const layerElement = document.createElement('div');
             layerElement.classList.add('option');
             layerElement.setAttribute('layerID', layer.layerID);
+            layerElement.setAttribute('animationID', layer.animationID);
             const dragHandle = document.createElement('div');
             dragHandle.draggable = true;
             dragHandle.classList.add('drag-handle');
@@ -144,7 +146,11 @@ function loadLayers(clientConfig, clientID) {
 
             const title = document.createElement('div');
             title.classList.add('title');
-            title.textContent = layer.animationID;
+            if (Animations[layer.animationID] && Animations[layer.animationID].animationName) {
+                title.textContent = Animations[layer.animationID].animationName;
+            } else {
+                title.textContent = layer.animationID;
+            }
 
             // Enable/Disable Switch
             const switchContainer = document.createElement('div');
@@ -360,24 +366,15 @@ function openPopup(formElements) {
 
 function openAddLayerMenu(clientID) {
     // Fetch the list of available animations
-    animationsApi.apiAnimationListGet((error, data, response) => {
-        if (error) {
-            console.error('Error fetching animations:', error);
-            return;
-        }
+    const animationSelect = document.getElementById('animation-select');
+    animationSelect.innerHTML = ''; // Clear existing options
 
-        const animationSelect = document.getElementById('animation-select');
-        animationSelect.innerHTML = ''; // Clear existing options
-
-        const animations = Object.values(data);
-        animations.forEach(animation => {
-            const option = document.createElement('option');
-            option.value = animation.animationName;
-            option.textContent = animation.animationName;
-            animationSelect.appendChild(option);
-        });
-    });
-
+    Object.entries(Animations).forEach(([key, value]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = value.animationName;
+        animationSelect.appendChild(option);
+    })
     // Add event listener to handle the selection of an animation
     document.getElementById('send-button').addEventListener('click', () => {
         const selectedAnimation = document.getElementById('animation-select').value;
