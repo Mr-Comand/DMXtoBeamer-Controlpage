@@ -202,8 +202,8 @@ function loadLayers(clientConfig, clientID) {
             sliderWrapper.appendChild(createSlider("Dimmer", "dimmer", 0, 100));
             sliderWrapper.appendChild(createSlider("Hue Shift", "hueShift", 0, 360));
             sliderWrapper.appendChild(createSlider("Rotate", "rotate", 0, 360));
-            sliderWrapper.appendChild(createSlider("Pan", "pan", -180, 180));
-            sliderWrapper.appendChild(createSlider("Tilt", "tilt", -180, 180));
+            sliderWrapper.appendChild(createSlider("Pan", "pan", -1000, 1000));
+            sliderWrapper.appendChild(createSlider("Tilt", "tilt", -1000, 1000));
             sliderWrapper.appendChild(createSlider("Scale", "scale", 1, 200));
             // Additional settings button
             const additionalSettingsButton = document.createElement('button');

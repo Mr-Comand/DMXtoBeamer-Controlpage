@@ -319,6 +319,7 @@ class LayerWithTracking extends Layer {
             set: (obj, prop, value) => {
                 if (prop === 'layers' || prop in obj) {
                     console.log(`Property '${prop}' changed to:`, value);
+                    obj[prop] = value;
                     this.ClientUpdater(); // Send updated config if liveUpdate is enabled
                 }
                 obj[prop] = value;
