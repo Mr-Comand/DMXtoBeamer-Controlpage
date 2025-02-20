@@ -33,7 +33,7 @@ export default class ApiClient {
          * @type {String}
          * @default https://api.example.com
          */
-        this.basePath = 'http://127.0.0.1:8080'.replace(/\/+$/, '');
+        this.basePath = '/'.replace(/\/+$/, '');
 
         /**
          * The authentication methods to be included for all API calls.
