@@ -199,7 +199,26 @@ input:checked+.slider:before {
 
 .drag-handle {
     cursor: grab;
-    width: 3em;
+    width: 1em;
     font-size: 80px;
     height: 100%;
+}
+#settings-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    row-gap: 10px;
+}
+.form-element{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+#settings-form .option{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
