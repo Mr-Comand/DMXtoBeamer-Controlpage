@@ -394,7 +394,7 @@ function submitAddLayerForm(selectedAnimation) {
         rotate: 0,
         pan: 0,
         tilt: 0,
-        scale: 125,
+        scale: 25,
     });
     Clients[clientID].addLayer(newLayer)
     loadLayers(Clients[clientID], clientID); //TODO: only change no full reload
