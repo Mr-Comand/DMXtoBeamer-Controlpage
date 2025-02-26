@@ -27,9 +27,11 @@ body {
     color: #e0e0e0;
 }
 
-.item:hover,
-.item.selected {
+.item:hover{
     background-color: #555;
+}
+.item.selected {
+    background-color: #ffd700;
 }
 
 .content {
@@ -221,4 +223,33 @@ input:checked+.slider:before {
     justify-content: space-between;
     align-items: center;
     width: 100%;
+}
+
+.selected {
+    background-color: yellow;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+}
+
+button {
+    padding: 20px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+.hold-button {
+    background-color: #4CAF50;
+}
+.toggle-button {
+    background-color: #4CAF50;
 }

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackout</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=WeakRef,BigInt"></script>
+    <script src="https://cdn.jsdelivr.net/npm/superagent"></script>
+    <style>
+       
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="item" onclick="selectItem(this)">Client 1</div>
+        <div class="item" onclick="selectItem(this)">Client 2</div>
+        <div class="item" onclick="selectItem(this)">Client 3</div>
+        <!-- Add more items as needed -->
+    </div>
+    <div class="button-container">
+        <button class="hold-button">Hold Dim</button>
+        <button class="toggle-button">Toggle Dim</button>
+    </div>
+    <script src="js/blackout.js" type="module"></script>
+
+</body>
+
+</html>
