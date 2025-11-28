@@ -17,7 +17,7 @@ Get configuration of a specific client
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ClientsApi();
 let clientID = "clientID_example"; // String | ID of the client
@@ -58,7 +58,7 @@ List all connected clients
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ClientsApi();
 apiInstance.apiClientListGet((error, data, response) => {
@@ -94,7 +94,7 @@ Set configuration for a specific client
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ClientsApi();
 let body = new AnimationControlApi.ClientConfig(); // ClientConfig | 
@@ -137,7 +137,7 @@ Set configuration for all clients
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ClientsApi();
 let body = new AnimationControlApi.ClientConfig(); // ClientConfig | 

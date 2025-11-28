@@ -205,6 +205,7 @@ function loadLayers(clientConfig, clientID) {
             sliderWrapper.appendChild(createSlider("Pan", "pan", -1000, 1000));
             sliderWrapper.appendChild(createSlider("Tilt", "tilt", -1000, 1000));
             sliderWrapper.appendChild(createSlider("Scale", "scale", 1, 200));
+            sliderWrapper.appendChild(createSlider("Volume", "volume", 0, 5));
             // Additional settings button
             const additionalSettingsButton = document.createElement('button');
             additionalSettingsButton.textContent = 'Additional Settings';

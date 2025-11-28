@@ -16,7 +16,7 @@ Get details of a specific animation
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.AnimationsApi();
 let shaderID = "shaderID_example"; // String | ID of the animation to retrieve
@@ -57,7 +57,7 @@ Get the image associated with an animation
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.AnimationsApi();
 let shaderID = "shaderID_example"; // String | ID of the animation
@@ -98,7 +98,7 @@ List all available animations
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.AnimationsApi();
 apiInstance.apiAnimationListGet((error, data, response) => {

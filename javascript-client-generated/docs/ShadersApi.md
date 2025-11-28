@@ -19,7 +19,7 @@ Get details of a specific shader
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ShadersApi();
 let shaderID = "shaderID_example"; // String | ID of the shader to retrieve
@@ -60,7 +60,7 @@ Get the image associated with a shader
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ShadersApi();
 let shaderID = "shaderID_example"; // String | ID of the shader
@@ -101,7 +101,7 @@ List all available shaders
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ShadersApi();
 apiInstance.apiElementShaderListGet((error, data, response) => {
@@ -137,7 +137,7 @@ Get details of a specific shader
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ShadersApi();
 let shaderID = "shaderID_example"; // String | ID of the shader to retrieve
@@ -178,7 +178,7 @@ Get the image associated with a shader
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ShadersApi();
 let shaderID = "shaderID_example"; // String | ID of the shader
@@ -219,7 +219,7 @@ List all available shaders
 
 ### Example
 ```javascript
-import {AnimationControlApi} from 'animation_control_api';
+import {AnimationControlApi} from 'animation_control_api.js';
 
 let apiInstance = new AnimationControlApi.ShadersApi();
 apiInstance.apiTextureShaderListGet((error, data, response) => {
