@@ -215,7 +215,7 @@ function loadLayers(clientConfig, clientID) {
             layerElement.appendChild(additionalSettingsButton);
             // Additional settings button
             const ShaderorderButton = document.createElement('button');
-            ShaderorderButton.textContent = 'Layer order';
+            ShaderorderButton.textContent = 'Shaders';
             ShaderorderButton.addEventListener('click', () => {
                 openShaderOrderPopup(layer, clientID);
             });
