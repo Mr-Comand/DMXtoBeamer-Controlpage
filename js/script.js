@@ -1,7 +1,5 @@
-// Import the necessary API client modules
-import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer } from '../javascript-client-generated/src/index.js';
 import { pullClientList, Clients, pullAllClients, sendAllClients } from './apihandler.js'
-import { animationsApi, liveUpdate, setLiveUpdate } from './globals.js'
+import { liveUpdate, setLiveUpdate } from './globals.js'
 import { openAnimationSettingsPopup } from './animationsettings.js'
 import { openShaderOrderPopup } from './shaderOrder.js';
 import { Animations, pullStaticData } from './staticData.js';
@@ -206,6 +204,9 @@ function loadLayers(clientConfig, clientID) {
             sliderWrapper.appendChild(createSlider("Tilt", "tilt", -1000, 1000));
             sliderWrapper.appendChild(createSlider("Scale", "scale", 1, 200));
             sliderWrapper.appendChild(createSlider("Volume", "volume", 1, 10));
+            sliderWrapper.appendChild(createSlider("StretchX", "stretchX", 0, 100));
+            sliderWrapper.appendChild(createSlider("StretchX", "stretchY", 0, 100));
+
             // Additional settings button
             const additionalSettingsButton = document.createElement('button');
             additionalSettingsButton.textContent = 'Additional Settings';
@@ -386,7 +387,7 @@ function openAddLayerMenu(clientID) {
 
 function submitAddLayerForm(selectedAnimation) {
     // Add the new layer to the existing layers
-    const newLayer = Object.assign(new Layer(), {
+    const newLayer = {
         layerID: timeBasedUint64(), // Unique ID //TODO: FIX ID
         animationID: selectedAnimation,
         enabled: true,
@@ -396,7 +397,15 @@ function submitAddLayerForm(selectedAnimation) {
         pan: 0,
         tilt: 0,
         scale: 25,
-    });
+        volume: 1,
+        shader: '',
+        stretchX: 100,
+        stretchY: 100,
+        parameters: {},
+        shaderParameters: {},
+        textureShaders: {},
+        textureShaderOrder: [],
+    };
     Clients[clientID].addLayer(newLayer)
     loadLayers(Clients[clientID], clientID); //TODO: only change no full reload
 }

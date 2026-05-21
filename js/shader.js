@@ -2,11 +2,16 @@ import { createInputElement } from "./settingsPopup.js";
 import { TextureShaders } from "./staticData.js";
 
 export function openShaderSettingsPopup(layer, shaderID, clientID) {
-    const settings = TextureShaders[shaderID].parameters
+    if (!TextureShaders[shaderID] || !TextureShaders[shaderID].parameters) {
+        console.error('Shader metadata missing for', shaderID);
+        return;
+    }
+    const settings = TextureShaders[shaderID].parameters;
     if (!layer.textureShaders[shaderID]) {
         layer.textureShaders[shaderID] = {};
     }
     // Open the popup with settings specific to this layer
+    const defaultValue = (value) => value.default !== undefined ? value.default : value._default;
     openPopup(Object.entries(settings).map(([key, value]) => ({
         name: key,
         description: key,
@@ -14,9 +19,9 @@ export function openShaderSettingsPopup(layer, shaderID, clientID) {
         min: value.min,
         max: value.max,
         stepSize: value.stepSize,
-        default: value.default,
+        default: defaultValue(value),
         options: value.enumElements,
-        value: layer.textureShaders[shaderID][key] || value._default // Load current layer value
+        value: layer.textureShaders[shaderID][key] !== undefined ? layer.textureShaders[shaderID][key] : defaultValue(value) // Load current layer value
     })), TextureShaders[shaderID].shaderName || shaderID);
 
     // Update the layer's property immediately as the user adjusts sliders/input fields
@@ -43,7 +48,8 @@ export function openShaderSettingsPopup(layer, shaderID, clientID) {
                     newValue = event.target.value;
             }
             if (newValue === undefined || Number.isNaN(newValue)) {
-                newValue = Animations[layer.animationID].parameters[fieldName]._default;
+                const def = TextureShaders[shaderID].parameters[fieldName];
+                newValue = def.default !== undefined ? def.default : def._default;
             }
             if (!layer.textureShaders[shaderID]) {
                 layer.textureShaders[shaderID] = {};

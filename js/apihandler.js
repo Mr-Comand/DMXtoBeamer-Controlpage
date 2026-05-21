@@ -1,8 +1,7 @@
-import { ApiClient, AnimationsApi, ClientsApi, ShadersApi, Layer, ClientConfig } from '../javascript-client-generated/src/index.js';
 import ClientConfigWithTracking from './clienttrack.js'
-import {liveUpdate, apiClient, clientsApi} from './globals.js'
+import { getClientList, getClient } from './api.js'
 
-export let Clients = { "ab": ClientConfig }
+export let Clients = {}
 
 
 export async function pullClientList() {
@@ -11,18 +10,8 @@ export async function pullClientList() {
 }
 export async function fetchClientList() {
     try {
-        const data = await new Promise((resolve, reject) => {
-            clientsApi.apiClientListGet((error, data, response) => {
-                if (error) {
-                    handelError(error);
-                    reject(error);
-                    return;
-                }
-                resolve(data);
-            });
-        });
-
-        const clients = data.clients;
+        const data = await getClientList();
+        const clients = Array.isArray(data.clients) ? data.clients : [];
         let newClients = {};
 
         // Create an array of promises for missing clients
@@ -48,22 +37,14 @@ export async function pullClient(clientID) {
 
 export async function fetchClient(clientID) {
     try {
-        const data = await new Promise((resolve, reject) => {
-            clientsApi.apiClientGetClientIDGet(clientID, (error, data, response) => {
-                if (error) {
-                    handelError('Error fetching client configuration:', error);
-                    resolve(undefined); // Return undefined in case of an error
-                } else {
-                    console.log('Client configuration:', data);
-                    resolve(data); // Return the fetched client data
-                }
-            });
-        });
+        const data = await getClient(clientID);
+        if (!data) {
+            return undefined;
+        }
 
-        // Create a new instance of ClientConfigWithTracking instead of ClientConfig
-        const clientConfig = ClientConfigWithTracking.constructFromObject(data);
-        clientConfig.ClientID=clientID;
-        return clientConfig; // Return the tracked client config
+        const clientConfig = ClientConfigWithTracking.fromObject(data);
+        clientConfig.ClientID = clientID;
+        return clientConfig;
     } catch (error) {
         console.error("Unexpected error:", error);
         return undefined;
@@ -72,18 +53,8 @@ export async function fetchClient(clientID) {
 
 export async function fetchAllClients() {
     try {
-        const data = await new Promise((resolve, reject) => {
-            clientsApi.apiClientListGet((error, data, response) => {
-                if (error) {
-                    handelError(error);
-                    reject(error);
-                    return;
-                }
-                resolve(data);
-            });
-        });
-
-        const clients = data.clients;
+        const data = await getClientList();
+        const clients = Array.isArray(data.clients) ? data.clients : [];
         let newClients = {};
 
         // Create an array of promises for missing clients

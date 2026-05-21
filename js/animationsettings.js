@@ -2,9 +2,14 @@ import { createInputElement } from "./settingsPopup.js";
 import { Animations } from "./staticData.js";
 
 export function openAnimationSettingsPopup(layer, clientID) {
-    const settings = Animations[layer.animationID].parameters
+    if (!Animations[layer.animationID] || !Animations[layer.animationID].parameters) {
+        console.error('Animation metadata missing for', layer.animationID);
+        return;
+    }
+    const settings = Animations[layer.animationID].parameters;
 
     // Open the popup with settings specific to this layer
+    const defaultValue = (value) => value.default !== undefined ? value.default : value._default;
     openPopup(Object.entries(settings).map(([key, value]) => ({
         name: key,
         description: key,
@@ -13,7 +18,7 @@ export function openAnimationSettingsPopup(layer, clientID) {
         max: value.max,
         stepSize: value.stepSize,
         options: value.enumElements,
-        value: layer.parameters[key] !== undefined ? layer.parameters[key] : value._default
+        value: layer.parameters[key] !== undefined ? layer.parameters[key] : defaultValue(value)
     })));
     
     // Update the layer's property immediately as the user adjusts sliders/input fields
@@ -40,7 +45,8 @@ export function openAnimationSettingsPopup(layer, clientID) {
                     newValue = event.target.value;
             }
             if (newValue===undefined || Number.isNaN(newValue)){
-                newValue=Animations[layer.animationID].parameters[fieldName]._default;
+                const def = Animations[layer.animationID].parameters[fieldName];
+                newValue = def.default !== undefined ? def.default : def._default;
             }
             layer.parameters[fieldName] = newValue;  // Update the layer property
         });

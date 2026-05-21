@@ -1,4 +1,4 @@
-import { shadersApi, animationsApi } from "./globals.js";
+import { getElementShaderList, getTextureShaderList, getAnimationList } from './api.js';
 
 export let Animations = {};
 export let TextureShaders = {};
@@ -6,51 +6,27 @@ export let ElementShaders = {};
 
 export async function pullStaticData() {
     try {
-        const elementShadersPromise = new Promise((resolve, reject) => {
-            shadersApi.apiElementShaderListGet((error, data, response) => {
-                if (error) {
-                    console.error("Error fetching Element Shaders:", error);
-                    reject(error);
-                    return;
-                }
-                if (data) {
-                    ElementShaders = data
-                }
-                resolve();
-            });
+        const elementShadersPromise = getElementShaderList().then((data) => {
+            if (data) {
+                ElementShaders = data;
+            }
         });
 
-        const textureShadersPromise = new Promise((resolve, reject) => {
-            shadersApi.apiTextureShaderListGet((error, data, response) => {
-                if (error) {
-                    console.error("Error fetching Texture Shaders:", error);
-                    reject(error);
-                    return;
-                }
-                if (data) {
-                    TextureShaders = data
-                }
-                resolve();
-            });
+        const textureShadersPromise = getTextureShaderList().then((data) => {
+            if (data) {
+                TextureShaders = data;
+            }
         });
 
-        const animationsPromise = new Promise((resolve, reject) => {
-            animationsApi.apiAnimationListGet((error, data, response) => {
-                if (error) {
-                    console.error("Error fetching Animations:", error);
-                    reject(error);
-                    return;
-                }
-                if (data) {
-                    Animations = data
-                }
-                resolve();
-            });
+        const animationsPromise = getAnimationList().then((data) => {
+            if (data) {
+                Animations = data;
+            }
         });
 
         await Promise.all([elementShadersPromise, textureShadersPromise, animationsPromise]);
-        console.log("All static data successfully fetched and stored.");
+        console.log('All static data successfully fetched and stored.');
     } catch (error) {
-        console.error("Error fetching static data:", error);
+        console.error('Error fetching static data:', error);
     }
 }
