@@ -63,27 +63,29 @@ body {
 .client-bar {
     background-color: var(--bg-raised);
     border-bottom: 1px solid var(--border);
-    padding: 10px 20px;
+    padding: 4px 20px;
 }
 
 .client-bar .items {
     display: flex;
     overflow-x: auto;
     white-space: nowrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 .item {
-    padding: 12px 22px;
+    padding: 6px 14px;
     cursor: pointer;
     background-color: var(--bg-hover);
     border: 1px solid transparent;
     border-radius: var(--radius);
     color: var(--text);
     transition: background-color 0.15s ease, border-color 0.15s ease;
-    min-height: 44px;
+    min-height: 36px;
     display: inline-flex;
     align-items: center;
+    font-size: 14px;
+    color: var(--text-dim);
 }
 
 .item:hover {
@@ -94,6 +96,7 @@ body {
     background-color: var(--accent-soft);
     border-color: var(--accent);
     color: var(--text);
+    font-weight: 600;
 }
 
 .no-client,
@@ -349,7 +352,7 @@ input[type="range"]::-moz-range-thumb {
 .add-layer-container {
     max-width: 1100px;
     margin: 0 auto 30px;
-    padding: 16px 20px;
+    padding: 14px 20px 16px;
     background-color: var(--bg-raised);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -371,6 +374,22 @@ input[type="range"]::-moz-range-thumb {
 .add-layer-row select {
     flex-grow: 1;
     margin: 0;
+}
+
+#send-button {
+    flex-grow: 0;
+    min-width: 160px;
+    min-height: 52px;
+    padding: 12px 32px;
+    font-size: 17px;
+    font-weight: 700;
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--text);
+}
+
+#send-button:hover {
+    background-color: var(--accent);
 }
 
 /* ---------- Popup ---------- */
@@ -575,6 +594,10 @@ input:checked+.slider:before {
     .controls {
         width: 100%;
         margin-left: 0;
+    }
+
+    .client-bar {
+        padding: 4px 12px;
     }
 
     .client-bar .items {
