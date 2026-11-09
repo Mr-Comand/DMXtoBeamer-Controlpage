@@ -186,9 +186,18 @@ function loadLayers(clientConfig, clientID) {
         switchContainer.appendChild(enableLabel);
         switchContainer.appendChild(enableSwitch);
 
-        // Slider Wrapper (Non-Draggable)
+        // Slider Wrapper (Non-Draggable): remaining, less-used sliders
         const sliderWrapper = document.createElement('div');
         sliderWrapper.classList.add('slider-wrapper');
+
+        // Number fields of every rendered slider for this property, kept in sync
+        const sliderInputs = {};
+
+        const syncSliders = (prop, value) => {
+            (sliderInputs[prop] || []).forEach(input => {
+                input.value = value;
+            });
+        };
 
         // Function to create sliders with an editable number field for manual input
         function createSlider(labelText, prop, min, max, step = 1) {
@@ -213,6 +222,8 @@ function loadLayers(clientConfig, clientID) {
             number.value = layer[prop];
             number.classList.add('value-input');
 
+            (sliderInputs[prop] = sliderInputs[prop] || []).push(slider, number);
+
             const applyValue = (value) => {
                 value = parseFloat(value);
                 if (Number.isNaN(value)) {
@@ -220,8 +231,7 @@ function loadLayers(clientConfig, clientID) {
                 }
                 value = Math.min(max, Math.max(min, value));
                 layer[prop] = value;
-                slider.value = value;
-                number.value = value;
+                syncSliders(prop, value);
             };
 
             slider.addEventListener('input', (event) => {
@@ -253,6 +263,13 @@ function loadLayers(clientConfig, clientID) {
         sliderWrapper.appendChild(createSlider("StretchX", "stretchX", 0, 100));
         sliderWrapper.appendChild(createSlider("StretchY", "stretchY", 0, 100));
 
+        // Most-used settings stay directly on the layer card
+        const quickSliders = document.createElement('div');
+        quickSliders.classList.add('quick-sliders');
+        quickSliders.appendChild(createSlider("Dimmer", "dimmer", 0, 100));
+        quickSliders.appendChild(createSlider("Hue Shift", "hueShift", 0, 360));
+        quickSliders.appendChild(createSlider("Rotate", "rotate", 0, 360));
+
         // Additional settings button
         const additionalSettingsButton = document.createElement('button');
         additionalSettingsButton.textContent = 'Additional Settings';
@@ -279,12 +296,26 @@ function loadLayers(clientConfig, clientID) {
             deleteLayer(index);
         };
 
+        // Toggle for collapsing the remaining sliders on mobile
+        const moreToggle = document.createElement('button');
+        moreToggle.classList.add('layer-more-toggle');
+        moreToggle.innerHTML = '<span>More Settings</span><span class="chevron">▾</span>';
+        moreToggle.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent drag interference
+            const open = sliderWrapper.classList.toggle('open');
+            moreToggle.classList.toggle('open', open);
+        });
+
         // Append elements
         layerElement.appendChild(img);
         layerElement.appendChild(title);
         layerElement.appendChild(switchContainer);
-        layerElement.appendChild(sliderWrapper);
+        layerElement.appendChild(quickSliders);
+        layerElement.appendChild(additionalSettingsButton);
+        layerElement.appendChild(shaderOrderButton);
         layerElement.appendChild(deleteButton);
+        layerElement.appendChild(moreToggle);
+        layerElement.appendChild(sliderWrapper);
 
         content.appendChild(layerElement);
     });

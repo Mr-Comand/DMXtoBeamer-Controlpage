@@ -188,6 +188,25 @@ body {
 
 /* ---------- Layer sliders ---------- */
 
+.quick-sliders {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.quick-sliders .slider-container {
+    flex: 1 1 150px;
+    min-width: 140px;
+}
+
+.quick-sliders .slider-container label {
+    min-width: 0;
+}
+
+/* Expandable panel with the remaining layer sliders */
 .slider-wrapper {
     display: flex;
     flex-wrap: wrap;
@@ -196,6 +215,33 @@ body {
     padding: 12px;
     background: rgba(0, 0, 0, 0.15);
     border-radius: 8px;
+}
+
+.slider-wrapper.collapsed {
+    display: none;
+}
+
+/* Mobile-only toggle: the panel starts collapsed there */
+.layer-more-toggle {
+    display: none;
+    padding: 12px 14px;
+    background-color: var(--bg-hover);
+    color: var(--text-dim);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    flex-basis: 100%;
+    justify-content: center;
+    gap: 6px;
+    align-items: center;
+}
+
+.layer-more-toggle .chevron {
+    transition: transform 0.15s ease;
+}
+
+.layer-more-toggle.open .chevron {
+    transform: rotate(180deg);
 }
 
 .slider-container {
@@ -549,6 +595,15 @@ input:checked+.slider:before {
 
     .slider-container {
         flex-basis: 100%;
+    }
+
+    /* On mobile, the remaining sliders start collapsed to keep cards small */
+    .layer-more-toggle {
+        display: flex;
+    }
+
+    .slider-wrapper:not(.open) {
+        display: none;
     }
 
     .popup-content {
