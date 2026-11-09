@@ -21,28 +21,35 @@ export function openAnimationSettingsPopup(layer, clientID) {
         value: layer.parameters[key] !== undefined ? layer.parameters[key] : defaultValue(value)
     })));
     
-    // Update the layer's property immediately as the user adjusts sliders/input fields
+    // Update the layer's property immediately as the user adjusts sliders/input fields.
+    // Range inputs are wrapped together with a number field; use the number field's value.
     document.querySelectorAll('.popup input, .popup select, .popup textarea').forEach(input => {
         input.addEventListener('input', (event) => {
             const fieldName = event.target.name;
+            const source = event.target.closest('.range-input-wrapper')?.querySelector('.value-input') || event.target;
             let newValue;
-    
-            switch (event.target.type) {
+
+            switch (source.type) {
                 case 'checkbox':
                     newValue = event.target.checked;
                     break;
                 case 'range':
                 case 'number':
+                    newValue = parseFloat(source.value);
+                    if (!Number.isNaN(newValue)) {
+                        newValue = Math.min(Math.max(newValue, parseFloat(source.min)), parseFloat(source.max));
+                    }
+                    break;
                 case 'select-one':
-                    newValue = parseFloat(event.target.value);
+                    newValue = parseFloat(source.value);
                     break;
                 case 'color':
                 case 'text':
                 case 'textarea':
-                    newValue = event.target.value;
+                    newValue = source.value;
                     break;
                 default:
-                    newValue = event.target.value;
+                    newValue = source.value;
             }
             if (newValue===undefined || Number.isNaN(newValue)){
                 const def = Animations[layer.animationID].parameters[fieldName];
@@ -69,7 +76,12 @@ function openPopup(formElements) {
 
         let input = createInputElement(element);
 
-        input.name = element.name;
+        // Set name on the actual input elements (the range wrapper is a div, which ignores .name)
+        if (input.classList.contains('range-input-wrapper')) {
+            input.querySelectorAll('input').forEach(el => { el.name = element.name; });
+        } else {
+            input.name = element.name;
+        }
         container.appendChild(input);
         form.appendChild(container);
     });

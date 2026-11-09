@@ -1,5 +1,6 @@
-import { pullClientList, Clients, pullAllClients, sendAllClients } from './apihandler.js';
-import { Animations, pullStaticData } from './staticData.js';
+import { pullClientList, Clients } from './apihandler.js';
+import { pullStaticData } from './staticData.js';
+import { getClient, setClientConfig } from './api.js';
 
 let selectedClients = new Set();
 let toggleState = false;
@@ -11,113 +12,100 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadClientList() {
-    const topBar = document.querySelector('.top-bar');
-    topBar.innerHTML = ''; // Clear existing items
+    const clientItems = document.getElementById('client-items');
+    clientItems.innerHTML = ''; // Clear existing items
     await pullClientList();
-    
+
     const clients = Object.keys(Clients);
-    
+
     if (clients.length === 0) {
         const noClientElement = document.createElement('div');
         noClientElement.classList.add('no-client');
         noClientElement.textContent = 'No client connected';
-        topBar.appendChild(noClientElement);
-    } else {
-        clients.forEach(client => {
-            const clientElement = document.createElement('div');
-            clientElement.classList.add('item');
-            clientElement.classList.add('selected');
-            clientElement.textContent = client;
-            clientElement.onclick = () => selectItem(clientElement);
-            topBar.appendChild(clientElement);
-            selectedClients.add(client);
-
-        });
+        clientItems.appendChild(noClientElement);
+        return;
     }
+
+    clients.forEach(client => {
+        const clientElement = document.createElement('div');
+        clientElement.classList.add('item');
+        clientElement.classList.add('selected');
+        clientElement.textContent = client;
+        clientElement.dataset.clientID = client;
+        clientElement.onclick = () => selectItem(clientElement);
+        clientItems.appendChild(clientElement);
+        selectedClients.add(client);
+    });
 }
 
 function selectItem(clientElement) {
-    const clientName = clientElement.textContent;
+    const clientID = clientElement.dataset.clientID;
 
-    if (selectedClients.has(clientName)) {
-        selectedClients.delete(clientName);
+    if (selectedClients.has(clientID)) {
+        selectedClients.delete(clientID);
         clientElement.classList.remove("selected");
     } else {
-        selectedClients.add(clientName);
+        selectedClients.add(clientID);
         clientElement.classList.add("selected");
     }
     console.log([...selectedClients]);
 }
 
 function setupButtons() {
-    const container = document.createElement('div');
-    container.classList.add('button-container');
-    
-    const holdButton = document.createElement('button');
-    holdButton.textContent = 'Hold Dim';
-    holdButton.classList.add('hold-button');
-    
-    const toggleButton = document.createElement('button');
-    toggleButton.textContent = 'Toggle Dim';
-    toggleButton.classList.add('toggle-button');
+    const holdButton = document.querySelector('.hold-button');
+    const toggleButton = document.querySelector('.toggle-button');
 
-    holdButton.onmousedown = () => {
+    holdButton.addEventListener('mousedown', () => {
         setDimmer([...selectedClients], 0);
-        holdButton.style.backgroundColor = '#ff4d4d'; // Soft red
-    };
+        holdButton.classList.add('active');
+    });
 
-    holdButton.onmouseup = () => {
+    holdButton.addEventListener('mouseup', () => {
         setDimmer([...selectedClients], 100);
-        holdButton.style.backgroundColor = '#4CAF50'; // Soft green
+        holdButton.classList.remove('active');
         if (toggleState) {
             toggleState = false;
-            toggleButton.style.backgroundColor = '#4CAF50';
+            toggleButton.classList.remove('active');
         }
-    };
-    
-    toggleButton.onclick = () => {
+    });
+
+    // Keep the dimmer at zero while the button is held
+    holdButton.addEventListener('mouseleave', () => {
+        if (holdButton.classList.contains('active')) {
+            holdButton.classList.remove('active');
+            setDimmer([...selectedClients], 100);
+            if (toggleState) {
+                toggleState = false;
+                toggleButton.classList.remove('active');
+            }
+        }
+    });
+
+    toggleButton.addEventListener('click', () => {
         toggleState = !toggleState;
         const newState = toggleState ? 0 : 100;
         setDimmer([...selectedClients], newState);
-        toggleButton.style.backgroundColor = toggleState ? '#ff4d4d' : '#4CAF50';
-    };
-    
-    container.appendChild(holdButton);
-    container.appendChild(toggleButton);
-    document.body.appendChild(container);
+        toggleButton.classList.toggle('active', toggleState);
+    });
 }
 
-function setDimmer(clients, value) {
-    console.log(`Setting dimmer for ${clients} to ${value}`);
-    clients.forEach(client => {
-        fetch(`http://127.0.0.1:8080/api/client/get/${client}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Failed to get configuration for client ${client}`);
-                }
-                return response.json();
-            })
-            .then(config => {
-                config.dimmer = value;
-                return fetch(`http://127.0.0.1:8080/api/client/set/${client}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(config)
-                });
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Failed to set dimmer for client ${client}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log(`Dimmer set for client ${client}:`, data);
-            })
-            .catch(error => {
-                console.error(`Error setting dimmer for client ${client}:`, error);
-            });
+async function setDimmer(clientIDs, value) {
+    console.log(`Setting dimmer for ${clientIDs.join(', ')} to ${value}`);
+    clientIDs.forEach(clientID => {
+        setDimmerForClient(clientID, value);
     });
+}
+
+async function setDimmerForClient(clientID, value) {
+    try {
+        const config = await getClient(clientID);
+        if (!config) {
+            throw new Error(`No configuration received for client ${clientID}`);
+        }
+        config.dimmer = value;
+        await setClientConfig(clientID, config);
+        console.log(`Dimmer set for client ${clientID}:`, value);
+    } catch (error) {
+        console.error(`Error setting dimmer for client ${clientID}:`, error);
+    }
 }

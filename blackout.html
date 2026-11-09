@@ -4,28 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackout</title>
+    <title>Blackout - DMXtoBeamer</title>
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=WeakRef,BigInt"></script>
-    <script src="https://cdn.jsdelivr.net/npm/superagent"></script>
-    <style>
-       
-    </style>
 </head>
 
 <body>
-    <div class="top-bar">
-        <div class="item" onclick="selectItem(this)">Client 1</div>
-        <div class="item" onclick="selectItem(this)">Client 2</div>
-        <div class="item" onclick="selectItem(this)">Client 3</div>
-        <!-- Add more items as needed -->
-    </div>
-    <div class="button-container">
-        <button class="hold-button">Hold Dim</button>
-        <button class="toggle-button">Toggle Dim</button>
-    </div>
+    <header class="top-bar">
+        <h1 class="brand">Blackout</h1>
+    </header>
+    <nav class="client-bar">
+        <div class="items" id="client-items">
+            <!-- Client items are dynamically loaded here -->
+        </div>
+    </nav>
+    <main class="blackout-content">
+        <p class="hint">Select the clients you want to dim, then use one of the buttons below.</p>
+        <div class="button-container">
+            <button class="hold-button">Hold Dim</button>
+            <button class="toggle-button">Toggle Dim</button>
+        </div>
+    </main>
     <script src="js/blackout.js" type="module"></script>
-
 </body>
 
 </html>

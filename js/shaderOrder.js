@@ -102,93 +102,83 @@ function openPopup(shaders, layer) {
     container.appendChild(addShaderButton);
     form.appendChild(container);
 
-    form.appendChild(container);
     popup.style.display = 'flex';
 }
 
 function handleDragStart(event) {
-    event.dataTransfer.setData('text/plain', event.target.parentElement.dataset.index);
-    event.target.parentElement.classList.add('dragging');
+    event.target.closest('.option').classList.add('dragging');
 }
 
 function handleDragOver(event) {
     event.preventDefault();
+    const draggedElement = document.querySelector('.option.dragging');
     const targetElement = event.target.closest('.option');
-    const draggedElement = document.querySelector('.dragging');
 
-    if (targetElement && draggedElement !== targetElement) {
+    if (targetElement && draggedElement && draggedElement !== targetElement) {
         const form = document.getElementById('shaderLayers');
-        const children = Array.from(form.children);
-        const draggingIndex = children.indexOf(draggedElement.parentElement);
-        const targetIndex = children.indexOf(targetElement.parentElement);
+        const options = Array.from(form.querySelectorAll('.option'));
+        const draggingIndex = options.indexOf(draggedElement);
+        const targetIndex = options.indexOf(targetElement);
 
         if (draggingIndex < targetIndex) {
-            form.insertBefore(draggedElement.parentElement, targetElement.parentElement.nextSibling);
+            form.insertBefore(draggedElement, targetElement.nextSibling);
         } else {
-            form.insertBefore(draggedElement.parentElement, targetElement.parentElement);
+            form.insertBefore(draggedElement, targetElement);
         }
     }
 }
 
 function handleDrop(event, layer) {
     event.preventDefault();
-    const draggedElement = document.querySelector('.dragging');
-
-    if (draggedElement) {
-        draggedElement.classList.remove('dragging');
-
-        const form = document.getElementById('shaderLayers');
-        const children = Array.from(form.querySelectorAll(".shader > .option"));
-
-        const newOrder = Array.from(children).map(container =>
-            container.getAttribute("index") - 0
-        );
-
-        layer.reorderTextureShader(newOrder);
-        openPopup(layer.textureShaderOrder, layer);
-    }
+    reorderFromDOM(layer);
 }
 
 function handleTouchStart(event) {
     touchStartY = event.touches[0].clientY;
-    const touchDraggingElement = event.target.closest('.option');
-
-    touchDraggingElement.classList.add('dragging');
+    touchDraggedElement = event.target.closest('.option');
+    if (touchDraggedElement) {
+        touchDraggedElement.classList.add('dragging');
+    }
 }
 
 function handleTouchMove(event) {
     event.preventDefault();
-    const touchDraggingElement = document.querySelector('.dragging');
-    const touchCurrentY = event.touches[0].clientY;
+    if (!touchDraggedElement) {
+        return;
+    }
     const content = document.getElementById('shaderLayers');
     const options = Array.from(content.querySelectorAll('.option'));
-    const targetElement = document.elementFromPoint(event.touches[0].clientX, touchCurrentY)?.closest('.option');
-    if (targetElement && targetElement !== touchDraggingElement) {
-        const draggingIndex = options.indexOf(touchDraggingElement.parentElement);
-        const targetIndex = options.indexOf(targetElement.parentElement);
+    const hitElement = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
+    const targetElement = hitElement ? hitElement.closest('.option') : null;
+    if (targetElement && targetElement !== touchDraggedElement) {
+        const draggingIndex = options.indexOf(touchDraggedElement);
+        const targetIndex = options.indexOf(targetElement);
         if (draggingIndex < targetIndex) {
-            content.insertBefore(touchDraggingElement.parentElement, targetElement.parentElement.nextSibling);
+            content.insertBefore(touchDraggedElement, targetElement.nextSibling);
         } else {
-            content.insertBefore(touchDraggingElement.parentElement, targetElement.parentElement);
+            content.insertBefore(touchDraggedElement, targetElement);
         }
     }
 }
 
-function handleTouchEnd(event,layer) {
-    const touchDraggingElement = document.querySelector('.dragging');
+function handleTouchEnd(event, layer) {
     event.preventDefault();
-    
-    if (touchDraggingElement) {
-        touchDraggingElement.classList.remove('dragging');
+    reorderFromDOM(layer);
+}
 
-        const form = document.getElementById('shaderLayers');
-        const children = Array.from(form.querySelectorAll(".shader > .option"));
-
-        const newOrder = Array.from(children).map(container =>
-            container.getAttribute("index") - 0
-        );
-
-        layer.reorderTextureShader(newOrder);
-        openPopup(layer.textureShaderOrder, layer);
+function reorderFromDOM(layer) {
+    const draggedElement = document.querySelector('.option.dragging');
+    if (!draggedElement) {
+        return;
     }
+    draggedElement.classList.remove('dragging');
+    touchDraggedElement = null;
+
+    const form = document.getElementById('shaderLayers');
+    const children = Array.from(form.querySelectorAll('.option'));
+
+    const newOrder = children.map(container => container.getAttribute('index') - 0);
+
+    layer.reorderTextureShader(newOrder);
+    openPopup(layer.textureShaderOrder, layer);
 }
